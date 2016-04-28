@@ -41,15 +41,21 @@ public class ServerInterface {
 				//set socket options
 				socket.setReceiveBufferSize(256);
 				socket.setSendBufferSize(256);
-				socket.setSoTimeout(5000);
+				socket.setSoTimeout(2000);
 				
 				InetAddress remoteHost = InetAddress.getByName(HOST);
 				socket.connect(remoteHost, Server.PORT);
 				connected = true;
 				
 				packet = new DatagramPacket(new byte[256], 256, remoteHost, Server.PORT);
-				send(NetMessage.CONNECT, new byte[] {});
+				boolean success = send(NetMessage.CONNECT, new byte[] {});
+				if(!success) {
+					disconnect();
+					return (connected = false);
+				}
+				
 				byte[] data = receive();
+				assert data != null;
 				if(data[0] == NetMessage.ID_REPLY)
 					netID = data[2];
 				else {
@@ -112,6 +118,7 @@ public class ServerInterface {
 				Gdx.app.log("ServerInterface.receive(int)", "Skipped a packet. Trying again, attempt " + (i+1), e);
 			}
 		}
+		Gdx.app.log("ServerInterface.receive(int)", "Failed to receive a message");
 		return null;
 	}
 	

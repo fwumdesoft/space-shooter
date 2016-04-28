@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -20,8 +21,8 @@ public class Server extends ApplicationAdapter {
 	FileHandle logFile;
 	Thread serverThread, timeThread;
 	DatagramSocket serverSocket = null;
-	HashMap<Byte, DatagramPacket> packets;
-	HashMap<Byte, Long> timeSinceHeartbeat;
+	volatile HashMap<Byte, DatagramPacket> packets;
+	volatile HashMap<Byte, Long> timeSinceHeartbeat;
 	
 	@Override
 	public void create() {
@@ -34,14 +35,23 @@ public class Server extends ApplicationAdapter {
 				deltaTime = System.currentTimeMillis() - prevTime;
 				prevTime = System.currentTimeMillis();
 				
+				ArrayList<Byte> removedIDs = null;
 				for(Entry<Byte, Long> timeEntry : timeSinceHeartbeat.entrySet()) {
 					timeEntry.setValue(timeEntry.getValue() + deltaTime);
 					if(timeEntry.getValue() > HEARTBEAT_TIMEOUT) {
+						if(removedIDs == null) removedIDs = new ArrayList<>();
+						
 						for(Entry<Byte, DatagramPacket> packetEntry : packets.entrySet()) {
-							
 							send(NetMessage.DISCONNECT, timeEntry.getKey(), new byte[] {}, packetEntry.getKey());
 						}
+						packets.remove(timeEntry.getKey());
+						removedIDs.add(timeEntry.getKey());
 					}
+				}
+				
+				//avoid ConcurrentModificationException
+				for(byte id : removedIDs) {
+					timeSinceHeartbeat.remove(id);
 				}
 			}
 		}, "time");
@@ -94,6 +104,7 @@ public class Server extends ApplicationAdapter {
 					case NetMessage.DISCONNECT:
 						byte deletedID = serverPacket.getData()[1];
 						packets.remove(deletedID);
+						timeSinceHeartbeat.remove(deletedID);
 					default:
 						byte netmsg = serverPacket.getData()[0];
 						byte id = serverPacket.getData()[1];
@@ -130,7 +141,7 @@ public class Server extends ApplicationAdapter {
 	 * @param recipientNetID who is receiving the message.
 	 * @return <tt>true</tt> if the message was sent, otherwise <tt>false</tt>.
 	 */
-	private boolean send(byte netmsg, byte netID, byte[] buf, byte recipientNetID) {
+	private synchronized boolean send(byte netmsg, byte netID, byte[] buf, byte recipientNetID) {
 		//construct message
 		byte[] data = new byte[buf.length+2];
 		data[0] = netmsg;
