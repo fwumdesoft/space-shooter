@@ -8,17 +8,18 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import com.badlogic.gdx.Gdx;
+import com.fwumdesoft.shoot.server.Server;
 
 /**
  * Allows clients to send/receive messages to the server.
- * <li>The first byte in each packet identifies the message.
- * <li>
- * <li>
+ * <li>The first byte in each packet data array identifies the message.
+ * <li>The second byte is the netID of the sender.
+ * <li>The remainder of the packet data array is the data.
  */
 public class ServerInterface {
 	private static final String HOST = "45.33.68.145";
-	private static final int PORT = 5555;
 	
+	private static byte netID = -1;
 	private static boolean connected;
 	private static DatagramSocket socket;
 	private static DatagramPacket packet;
@@ -43,18 +44,24 @@ public class ServerInterface {
 				socket.setSoTimeout(5000);
 				
 				InetAddress remoteHost = InetAddress.getByName(HOST);
-				socket.connect(remoteHost, PORT);
+				socket.connect(remoteHost, Server.PORT);
 				connected = true;
 				
-				packet = new DatagramPacket(new byte[256], 256, remoteHost, PORT);
+				packet = new DatagramPacket(new byte[256], 256, remoteHost, Server.PORT);
+				send(NetMessage.CONNECT, new byte[] {});
 				byte[] data = receive();
-				Gdx.app.log("Connect Test", Byte.toString(data[0]));
+				if(data[0] == NetMessage.ID_REPLY)
+					netID = data[2];
+				else {
+					Gdx.app.error("ServerInterface.connect()", "Never received a netID");
+					disconnect();
+				}
 			} catch(SocketException e) {
 				Gdx.app.error("ServerInterface.connect()", "Failed to connect to instantiate DatagramSocket", e);
-				connected = false;
+				disconnect();
 			} catch(UnknownHostException e) {
 				Gdx.app.error("ServerInterface.connect()", "Unknown host address", e);
-				connected = false;
+				disconnect();
 			}
 		}
 		return connected;
@@ -65,14 +72,21 @@ public class ServerInterface {
 	 * @param buf data buffer
 	 * @return <tt>true</tt> if the packet sent successfully, otherwise <tt>false</tt>.
 	 */
-	public static boolean send(byte[] buf) {
+	public static boolean send(byte netmsg, byte[] buf) {
 		if(!connected) throw new IllegalStateException("Not connected to the server");
+		
+		//construct message
+		byte[] b = new byte[buf.length+2];
+		b[0] = netmsg;
+		b[1] = netID;
+		System.arraycopy(buf, 0, b, 2, buf.length);
 		packet.setData(buf);
+		
 		try {
 			socket.send(packet);
 			return true;
 		} catch (IOException e) {
-			Gdx.app.log("ServerInterface.send(byte[])", "Failed to send a packet", e);
+			Gdx.app.log("ServerInterface.send(byte, byte[])", "Failed to send a {type:"+netmsg+", id:"+netID+"}", e);
 			return false;
 		}
 	}
@@ -110,8 +124,11 @@ public class ServerInterface {
 	}
 	
 	public static void disconnect() {
-		if(!connected) return;
-		socket.disconnect();
+		if(socket != null) {
+			send(NetMessage.DISCONNECT, new byte[] {});
+			socket.disconnect();
+		}
+		netID = -1;
 		socket = null;
 		packet = null;
 		connected = false;
