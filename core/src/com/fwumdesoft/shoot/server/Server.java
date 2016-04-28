@@ -98,8 +98,7 @@ public class Server extends ApplicationAdapter {
 						break;
 					case NetMessage.HEARTBEAT:
 						byte heartbeatID = serverPacket.getData()[1];
-						timeSinceHeartbeat.get(heartbeatID);
-						//TODO finish heartbeat impl
+						timeSinceHeartbeat.put(heartbeatID, 0L);
 						break;
 					case NetMessage.DISCONNECT:
 						byte deletedID = serverPacket.getData()[1];

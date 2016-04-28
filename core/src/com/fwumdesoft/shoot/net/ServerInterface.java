@@ -27,55 +27,56 @@ public class ServerInterface {
 	/**
 	 * Connects to the server. If the client is already connected, then the client will<br>
 	 * disconnect and then attempt to reconnect.
+	 * <p><b>Postcondition:</b> <tt>connected</tt> will be set to an appropriate value.
 	 * @return <tt>true</tt> if the client is connected with the server, otherwise <tt>false</tt>.
-	 * @postcondition <tt>connected</tt> will be set to an appropriate value.
 	 */
-	public static boolean connect() {
-		if(connected) {
-			disconnect();
-			connect();
-		} else {
-			try {
-				socket = new DatagramSocket();
-				
-				//set socket options
-				socket.setReceiveBufferSize(256);
-				socket.setSendBufferSize(256);
-				socket.setSoTimeout(2000);
-				
-				InetAddress remoteHost = InetAddress.getByName(HOST);
-				socket.connect(remoteHost, Server.PORT);
-				connected = true;
-				
-				packet = new DatagramPacket(new byte[256], 256, remoteHost, Server.PORT);
-				boolean success = send(NetMessage.CONNECT, new byte[] {});
-				if(!success) {
-					disconnect();
-					return (connected = false);
-				}
-				
-				byte[] data = receive();
-				assert data != null;
-				if(data[0] == NetMessage.ID_REPLY)
-					netID = data[2];
-				else {
-					Gdx.app.error("ServerInterface.connect()", "Never received a netID");
-					disconnect();
-				}
-			} catch(SocketException e) {
-				Gdx.app.error("ServerInterface.connect()", "Failed to connect to instantiate DatagramSocket", e);
-				disconnect();
-			} catch(UnknownHostException e) {
-				Gdx.app.error("ServerInterface.connect()", "Unknown host address", e);
+	public static void connect() {
+		if(connected) throw new IllegalStateException("Client is already connected to the server");
+		
+		try {
+			socket = new DatagramSocket();
+			
+			//set socket options
+			socket.setReceiveBufferSize(256);
+			socket.setSendBufferSize(256);
+			socket.setSoTimeout(2000);
+			
+			InetAddress remoteHost = InetAddress.getByName(HOST);
+			socket.connect(remoteHost, Server.PORT);
+			connected = true;
+			
+			packet = new DatagramPacket(new byte[256], 256, remoteHost, Server.PORT);
+			boolean success = send(NetMessage.CONNECT, new byte[] {});
+			if(!success) {
 				disconnect();
 			}
+			
+			byte[] data = receive();
+			if(data == null) {
+				disconnect();
+			}
+			
+			if(data[0] == NetMessage.ID_REPLY)
+				netID = data[2];
+			else {
+				Gdx.app.error("ServerInterface.connect()", "Never received a netID");
+				disconnect();
+			}
+		} catch(SocketException e) {
+			Gdx.app.error("ServerInterface.connect()", "Failed to connect to instantiate DatagramSocket", e);
+			disconnect();
+		} catch(UnknownHostException e) {
+			Gdx.app.error("ServerInterface.connect()", "Unknown host address", e);
+			disconnect();
 		}
-		return connected;
 	}
 	
 	/**
 	 * Sends data to the server.
+	 * <p><b>Postcondition:</b> The packet sent must conform to the specifications described 
+	 * in the ServerInterface javadoc.
 	 * @param buf data buffer
+	 * @param netmsg type of message
 	 * @return <tt>true</tt> if the packet sent successfully, otherwise <tt>false</tt>.
 	 */
 	public static boolean send(byte netmsg, byte[] buf) {
@@ -130,6 +131,10 @@ public class ServerInterface {
 		return connected;
 	}
 	
+	/**
+	 * <p>Disconnects this clients from the server.
+	 * <p><b>Postcondition:</b> <tt>connected</tt> is set to false.
+	 */
 	public static void disconnect() {
 		if(socket != null) {
 			send(NetMessage.DISCONNECT, new byte[] {});
