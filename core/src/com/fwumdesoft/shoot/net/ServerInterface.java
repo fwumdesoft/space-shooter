@@ -76,11 +76,11 @@ public class ServerInterface {
 		if(!connected) throw new IllegalStateException("Not connected to the server");
 		
 		//construct message
-		byte[] b = new byte[buf.length+2];
-		b[0] = netmsg;
-		b[1] = netID;
-		System.arraycopy(buf, 0, b, 2, buf.length);
-		packet.setData(buf);
+		byte[] data = new byte[buf.length+2];
+		data[0] = netmsg;
+		data[1] = netID;
+		System.arraycopy(buf, 0, data, 2, buf.length);
+		packet.setData(data);
 		
 		try {
 			socket.send(packet);
