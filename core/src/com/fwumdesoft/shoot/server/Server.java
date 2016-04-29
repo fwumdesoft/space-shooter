@@ -32,6 +32,7 @@ public class Server extends ApplicationAdapter {
 		logFile.delete();
 		
 		timeThread = new Thread(() -> {
+			timeSinceHeartbeat = new HashMap<>();
 			long prevTime = System.currentTimeMillis(), deltaTime = 0;
 			while(!Thread.currentThread().isInterrupted()) {
 				deltaTime = System.currentTimeMillis() - prevTime;
@@ -42,6 +43,7 @@ public class Server extends ApplicationAdapter {
 					timeEntry.setValue(timeEntry.getValue() + deltaTime);
 					if(timeEntry.getValue() > HEARTBEAT_TIMEOUT) {
 						if(removedIDs == null) removedIDs = new ArrayList<>();
+						logFile.writeString("Removed player {"+timeEntry.getKey()+"} due to lack of heartbeat\n", true);
 						
 						for(Entry<UUID, DatagramPacket> packetEntry : packets.entrySet()) {
 							send(NetMessage.DISCONNECT, timeEntry.getKey(), new byte[] {}, packetEntry.getKey());
@@ -52,8 +54,10 @@ public class Server extends ApplicationAdapter {
 				}
 				
 				//avoid ConcurrentModificationException
-				for(UUID id : removedIDs) {
-					timeSinceHeartbeat.remove(id);
+				if(removedIDs != null) {
+					for(UUID id : removedIDs) {
+						timeSinceHeartbeat.remove(id);
+					}
 				}
 			}
 		}, "time");
@@ -72,7 +76,7 @@ public class Server extends ApplicationAdapter {
 			
 			packets = new HashMap<>();
 			DatagramPacket serverPacket = new DatagramPacket(new byte[BUFFER_SIZE], BUFFER_SIZE);
-			while(!Thread.interrupted()) {
+			while(!Thread.currentThread().isInterrupted()) {
 				try {
 					serverSocket.receive(serverPacket);
 					final byte netmsg = serverPacket.getData()[0]; //message id
@@ -95,6 +99,7 @@ public class Server extends ApplicationAdapter {
 								send(NetMessage.CONNECT, senderId, new byte[] {}, entry.getKey());
 							}
 						}
+						logFile.writeString("Added new player {"+senderId+"}\n", true);
 						break;
 					case NetMessage.HEARTBEAT:
 						timeSinceHeartbeat.put(senderId, 0L);

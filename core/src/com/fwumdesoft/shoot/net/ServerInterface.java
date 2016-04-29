@@ -127,6 +127,10 @@ public class ServerInterface {
 		return connected;
 	}
 	
+	public static UUID getMyID() {
+		return myNetId;
+	}
+	
 	/**
 	 * <p>Disconnects this clients from the server.
 	 * <p><b>Postcondition:</b> <tt>connected</tt> is set to false.
