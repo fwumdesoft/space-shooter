@@ -13,6 +13,8 @@ public class GameScreen extends ScreenAdapter {
 	public void show() {
 		FillViewport viewport = new FillViewport(250f, 250f * (Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
+		Gdx.input.setInputProcessor(stage);
+		
 	}
 	
 	@Override
@@ -24,6 +26,7 @@ public class GameScreen extends ScreenAdapter {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		stage.act(delta);
 		stage.draw();
 	}
 

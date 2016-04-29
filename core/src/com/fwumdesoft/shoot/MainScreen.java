@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.fwumdesoft.shoot.net.ServerInterface;
 
 public class MainScreen extends ScreenAdapter {
 	private Stage stage;
@@ -26,7 +27,9 @@ public class MainScreen extends ScreenAdapter {
 		btnJoin.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				
+				ServerInterface.connect();
+				if(ServerInterface.isConnected())
+					Main.game.setScreen(new GameScreen());
 			}
 		});
 		
