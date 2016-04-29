@@ -1,19 +1,29 @@
 package com.fwumdesoft.shoot;
 
-import com.badlogic.gdx.graphics.g2d.Batch;
+import java.util.UUID;
 
-public class Player extends NetActor {
-	public Player(byte id) {
-		super(id);
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+
+public class Player extends Actor {
+	public final UUID id;
+	
+	private TextureRegion texture;
+	
+	public Player(UUID id) {
+		this.id = id;
+		texture = new TextureRegion(Main.assets.get("sprites/player.png", Texture.class));
 	}
 
 	@Override
 	public void draw(Batch batch, float parentAlpha) {
-		
+		batch.draw(texture, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
 	}
 
 	@Override
 	public void act(float delta) {
-		
+		super.act(delta);
 	}
 }
