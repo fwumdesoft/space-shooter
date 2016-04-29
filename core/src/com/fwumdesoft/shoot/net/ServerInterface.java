@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
-import com.fwumdesoft.shoot.server.Server;
 
 /**
  * Allows clients to send/receive messages to the server.

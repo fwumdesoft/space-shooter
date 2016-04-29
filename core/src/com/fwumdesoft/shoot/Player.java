@@ -15,6 +15,8 @@ public class Player extends Actor {
 	public Player(UUID id) {
 		this.id = id;
 		texture = new TextureRegion(Main.assets.get("sprites/player.png", Texture.class));
+		setWidth(texture.getRegionWidth());
+		setHeight(texture.getRegionHeight());
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.fwumdesoft.shoot.server;
+package com.fwumdesoft.shoot.net;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -13,7 +13,6 @@ import java.util.UUID;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.fwumdesoft.shoot.net.NetMessage;
 
 public class Server extends ApplicationAdapter {
 	public static final int PORT = 5555;

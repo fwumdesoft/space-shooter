@@ -9,7 +9,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.files.FileHandle;
 import com.fwumdesoft.shoot.Main;
-import com.fwumdesoft.shoot.server.Server;
+import com.fwumdesoft.shoot.net.Server;
 
 public class DesktopLauncher {
 	public static void main(String[] arg) {
