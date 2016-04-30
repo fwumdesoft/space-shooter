@@ -45,7 +45,7 @@ public class Server extends ApplicationAdapter {
 						logFile.writeString("Removed player {"+timeEntry.getKey()+"} due to lack of heartbeat\n", true);
 						
 						for(Entry<UUID, DatagramPacket> packetEntry : packets.entrySet()) {
-							send(NetMessage.DISCONNECT, timeEntry.getKey(), new byte[] {}, packetEntry.getKey());
+							send(NetMessage.DISCONNECT, timeEntry.getKey(), null, packetEntry.getKey());
 						}
 						packets.remove(timeEntry.getKey());
 						removedIDs.add(timeEntry.getKey());
@@ -78,14 +78,15 @@ public class Server extends ApplicationAdapter {
 			while(!Thread.currentThread().isInterrupted()) {
 				try {
 					serverSocket.receive(serverPacket);
-					final byte netmsg = serverPacket.getData()[0]; //message id
-					ByteBuffer idBuf = ByteBuffer.allocate(16);
-					idBuf.put(serverPacket.getData(), 1, 16);
-					idBuf.flip();
-					final UUID senderId = new UUID(idBuf.getLong(), idBuf.getLong()); //sender id
-					ByteBuffer dataBuf = ByteBuffer.allocate(serverPacket.getLength() - 17);
-					dataBuf.put(serverPacket.getData(), 17, serverPacket.getLength() - 17);
-					final byte[] data = dataBuf.array(); //data
+					ByteBuffer buffer = ByteBuffer.allocate(serverPacket.getLength());
+					buffer.put(serverPacket.getData(), serverPacket.getOffset(), serverPacket.getLength());
+					buffer.flip();
+					
+					final int dataLength = buffer.getInt(); //data length
+					final byte netmsg = buffer.get(); //identifier
+					final UUID senderId = new UUID(buffer.getLong(), buffer.getLong()); //sender id
+					final ByteBuffer data = ByteBuffer.allocate(dataLength);
+					data.put(serverPacket.getData(), 21, dataLength);
 					
 					switch(netmsg)
 					{
@@ -95,7 +96,8 @@ public class Server extends ApplicationAdapter {
 						timeSinceHeartbeat.put(senderId, 0L);
 						for(Entry<UUID, DatagramPacket> entry : packets.entrySet()) {
 							if(!entry.getKey().equals(senderId)) {
-								send(NetMessage.CONNECT, senderId, new byte[] {}, entry.getKey());
+								send(NetMessage.CONNECT, senderId, null, entry.getKey());
+								send(NetMessage.CONNECT, entry.getKey(), null, senderId);
 							}
 						}
 						logFile.writeString("Added new player {"+senderId+"}\n", true);
@@ -106,6 +108,7 @@ public class Server extends ApplicationAdapter {
 					case NetMessage.DISCONNECT:
 						packets.remove(senderId);
 						timeSinceHeartbeat.remove(senderId);
+						logFile.writeString("Removed a player {"+senderId+"}\n", true);
 					default:
 						for(Entry<UUID, DatagramPacket> entry : packets.entrySet()) {
 							if(!entry.getKey().equals(senderId)) {
@@ -116,7 +119,6 @@ public class Server extends ApplicationAdapter {
 				} catch(IOException e) {
 					logFile.writeString(e + "\n", true);
 				}
-				
 			}
 		}, "server");
 		serverThread.start();
@@ -131,29 +133,29 @@ public class Server extends ApplicationAdapter {
 	
 	/**
 	 * Sends a message.
-	 * <p><b>precondition:</b> the recipientNetID must be in the packets HashMap.
 	 * @param netmsg type of message.
 	 * @param senderId who is sending the message.
 	 * @param data
 	 * @param recipientNetId who is receiving the message.
 	 * @return <tt>true</tt> if the message was sent, otherwise <tt>false</tt>.
 	 */
-	private synchronized boolean send(byte netmsg, UUID senderId, byte[] data, UUID recipientNetId) {
+	private synchronized void send(byte netmsg, UUID senderId, ByteBuffer data, UUID recipientNetId) {
 		//construct message
-		ByteBuffer msgBuf = ByteBuffer.allocate(data.length + 17);
+		ByteBuffer msgBuf = ByteBuffer.allocate((data == null ? 0 : data.limit()) + 21);
+		msgBuf.putInt(data == null ? 0 : data.limit());
 		msgBuf.put(netmsg);
 		msgBuf.putLong(senderId.getMostSignificantBits());
 		msgBuf.putLong(senderId.getLeastSignificantBits());
-		msgBuf.put(data);
+		if(data != null)
+			msgBuf.put(data);
+		msgBuf.flip();
 		
 		DatagramPacket recipient = packets.get(recipientNetId);
 		recipient.setData(msgBuf.array());
 		try {
 			serverSocket.send(recipient);
-			return true;
 		} catch(IOException e) {
 			logFile.writeString("Failed to send a {type:"+netmsg+", id:"+senderId+"} message to "+recipientNetId+"\n", true);
-			return false;
 		}
 	}
 	

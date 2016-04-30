@@ -10,10 +10,12 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.utils.Queue;
 
 /**
  * Allows clients to send/receive messages to the server.
- * <li>The first byte in each packet data array identifies the message.
+ * <li>The first 4 bytes in each packet data array gives the length of the data section.
+ * <li>The next byte in each packet data array identifies the message.
  * <li>The next 16 bytes are the netID of the sender.
  * <li>The remainder of the packet data array is the data.
  */
@@ -26,6 +28,9 @@ public class ServerInterface {
 	private static DatagramSocket socket;
 	private static DatagramPacket packet;
 	
+	private static Queue<ByteBuffer> msgQueue;
+	private static Thread sendThread;
+	
 	/**
 	 * Connects to the server. If the client is already connected, then the client will<br>
 	 * disconnect and then attempt to reconnect.
@@ -34,6 +39,22 @@ public class ServerInterface {
 	 */
 	public static void connect() {
 		if(connected) throw new IllegalStateException("Client is already connected to the server");
+		sendThread = new Thread(() -> {
+			msgQueue = new Queue<>();
+			while(!Thread.currentThread().isInterrupted()) {
+				if(msgQueue.size == 0) continue;
+				ByteBuffer buffer = msgQueue.removeFirst();
+				packet.setData(buffer.array());
+				try {
+					socket.send(packet);
+					Gdx.app.log("SEND", "Sent a packet");
+				} catch(IOException e) {
+					Gdx.app.log("SEND", "Failed to send a message");
+				}
+				Thread.yield();
+			}
+		}, "free_thread");
+		sendThread.start();
 		
 		try {
 			socket = new DatagramSocket();
@@ -41,18 +62,15 @@ public class ServerInterface {
 			//set socket options
 			socket.setReceiveBufferSize(BUFFER_SIZE);
 			socket.setSendBufferSize(BUFFER_SIZE);
-			socket.setSoTimeout(2000);
+			socket.setSoTimeout(1000);
 			
 			InetAddress remoteHost = InetAddress.getByName(HOST);
 			socket.connect(remoteHost, Server.PORT);
 			connected = true;
 			myNetId = UUID.randomUUID();
-			
 			packet = new DatagramPacket(new byte[BUFFER_SIZE], BUFFER_SIZE, remoteHost, Server.PORT);
-			boolean success = send(NetMessage.CONNECT, new byte[] {});
-			if(!success) {
-				disconnect();
-			}
+			
+			send(NetMessage.CONNECT, null);
 			Gdx.app.log("ServerInterface.connect()", "Connection successful");
 		} catch(SocketException e) {
 			Gdx.app.error("ServerInterface.connect()", "Failed to connect to instantiate DatagramSocket", e);
@@ -65,31 +83,26 @@ public class ServerInterface {
 	
 	/**
 	 * Sends data to the server.
-	 * <p><b>Precondition:</b> <tt>buf</tt> is less than or equal to <tt>BUFFER_SIZE</tt>.
+	 * <p><b>Precondition:</b> <tt>data</tt> is ready to be read from and is perfectly sized or null.
 	 * <p><b>Postcondition:</b> The packet sent must conform to the specifications described 
 	 * in the ServerInterface javadoc.
 	 * @param buf data buffer
 	 * @param netmsg type of message
 	 * @return <tt>true</tt> if the packet sent successfully, otherwise <tt>false</tt>.
 	 */
-	public static boolean send(byte netmsg, byte[] data) {
+	public static void send(byte netmsg, ByteBuffer data) {
 		if(!connected) throw new IllegalStateException("Not connected to the server");
 		
 		//construct message
-		ByteBuffer buf = ByteBuffer.allocate(data.length + 17);
-		buf.put(netmsg);
-		buf.putLong(myNetId.getMostSignificantBits());
-		buf.putLong(myNetId.getLeastSignificantBits());
-		buf.put(data);
-		packet.setData(buf.array());
-		
-		try {
-			socket.send(packet);
-			return true;
-		} catch (IOException e) {
-			Gdx.app.log("ServerInterface.send(byte, byte[])", "Failed to send a {type:"+netmsg+", id:"+myNetId+"}", e);
-			return false;
-		}
+		ByteBuffer buffer = ByteBuffer.allocate(21 + (data == null ? 0 : data.limit()));
+		buffer.putInt(data == null ? 0 : data.limit()); //length of data section
+		buffer.put(netmsg); //identifier
+		buffer.putLong(myNetId.getMostSignificantBits()); //UUID
+		buffer.putLong(myNetId.getLeastSignificantBits()); //UUID
+		if(data != null)
+			buffer.put(data); //Optional Data
+		buffer.flip();
+		msgQueue.addLast(buffer);
 	}
 	
 	/**
@@ -98,7 +111,7 @@ public class ServerInterface {
 	 * @return The data received from the server or <tt>null</tt> if no data is received.
 	 * @throws IllegalStateException The client isn't connected to the server yet.
 	 */
-	public static ByteBuffer receive(int tries) {
+	public static synchronized ByteBuffer receive(int tries) {
 		if(!connected) throw new IllegalStateException("Not connected to the server");
 		
 		for(int i = 0; i < tries; i++) {
@@ -106,20 +119,17 @@ public class ServerInterface {
 				socket.receive(packet);
 				ByteBuffer buf = ByteBuffer.allocate(packet.getLength());
 				buf.put(packet.getData(), packet.getOffset(), packet.getLength());
+				buf.flip();
 				return buf;
 			} catch(SocketException e) {
 				Gdx.app.log("ServerInterface.receive(int)", "Most likely caused by a call to disconnect", e);
 				break;
 			} catch(IOException e) {
-				Gdx.app.log("ServerInterface.receive(int)", "Skipped a packet. Trying again, attempt " + (i+1), e);
+				Gdx.app.log("ServerInterface.receive(int)", "Skipped a packet. Trying again, attempt " + (i+1));
 			}
 		}
 		Gdx.app.log("ServerInterface.receive(int)", "Failed to receive a message");
 		return null;
-	}
-	
-	public static ByteBuffer receive() {
-		return receive(5);
 	}
 	
 	public static boolean isConnected() {
@@ -136,9 +146,18 @@ public class ServerInterface {
 	 */
 	public static void disconnect() {
 		if(socket != null) {
-			send(NetMessage.DISCONNECT, new byte[] {});
+			send(NetMessage.DISCONNECT, null);
 			socket.disconnect();
 		}
+		if(sendThread != null) {
+			sendThread.interrupt();
+			try {
+				sendThread.join();
+			} catch(InterruptedException e) {
+				sendThread.interrupt();
+			}
+		}
+		sendThread = null;
 		myNetId = null;
 		socket = null;
 		packet = null;

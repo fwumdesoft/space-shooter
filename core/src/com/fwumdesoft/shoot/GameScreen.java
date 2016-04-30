@@ -1,5 +1,6 @@
 package com.fwumdesoft.shoot;
 
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
@@ -8,19 +9,64 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.fwumdesoft.shoot.net.NetMessage;
 import com.fwumdesoft.shoot.net.ServerInterface;
 
 public class GameScreen extends ScreenAdapter {
-	private boolean keyPressed;
+	private int keysHeld = 0;
 	
 	private Stage stage;
 	private Player me;
 	
+	private Thread netReceiveThread;
+	
 	@Override
 	public void show() {
+		//start net receive thread
+		netReceiveThread = new Thread(() -> {
+			while(!Thread.currentThread().isInterrupted()) {
+				ByteBuffer msg = ServerInterface.receive(1);
+				if(msg == null) continue;
+				final int dataLength = msg.getInt();
+				final byte netmsg = msg.get();
+				final UUID senderId = new UUID(msg.getLong(), msg.getLong());
+				final ByteBuffer data = msg;
+				
+				switch(netmsg) {
+				case NetMessage.CONNECT:
+					Player newPlayer = new Player(senderId);
+					stage.addActor(newPlayer);
+					break;
+				case NetMessage.UPDATE_PLAYER:
+					float newX = data.getFloat(), newY = data.getFloat();
+					for(Actor a : stage.getActors()) {
+						if(senderId.equals(a.getUserObject())) {
+							a.setPosition(newX, newY);
+							break;
+						}
+					}
+					break;
+				case NetMessage.DISCONNECT:
+					Actor removeActor = null;
+					for(Actor a: stage.getActors()) {
+						if(senderId.equals(a.getUserObject())) {
+							removeActor = a;
+							break;
+						}
+					}
+					if(removeActor != null)
+						removeActor.remove();
+					break;
+				}
+				Thread.yield();
+			}
+		}, "net_receive");
+		netReceiveThread.start();
+		
 		FillViewport viewport = new FillViewport(250f, 250f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
 		Gdx.input.setInputProcessor(new InputMultiplexer(stage, new UserInput()));
@@ -42,18 +88,34 @@ public class GameScreen extends ScreenAdapter {
 		stage.act(delta);
 		stage.draw();
 		
-		if(keyPressed && Gdx.input.isKeyPressed(Keys.W)) {
-			
+		if(keysHeld > 0) {
+			boolean moved = false;
+			if(Gdx.input.isKeyPressed(Keys.W)) {
+				me.addAction(Actions.moveBy(0, 1));
+				moved = true;
+			}
+			if(Gdx.input.isKeyPressed(Keys.A)) {
+				me.addAction(Actions.moveBy(-1, 0));
+				moved = true;
+			}
+			if(Gdx.input.isKeyPressed(Keys.S)) {
+				me.addAction(Actions.moveBy(0, -1));
+				moved = true;
+			}
+			if(Gdx.input.isKeyPressed(Keys.D)) {
+				me.addAction(Actions.moveBy(1, 0));
+				moved = true;
+			}
+			if(moved) {
+				ByteBuffer data = ByteBuffer.allocate(8);
+				data.putFloat(me.getX());
+				data.putFloat(me.getY());
+				data.flip();
+				ServerInterface.send(NetMessage.UPDATE_PLAYER, data);
+			}
 		}
-		if(keyPressed && Gdx.input.isKeyPressed(Keys.A)) {
-			
-		}
-		if(keyPressed && Gdx.input.isKeyPressed(Keys.S)) {
-			
-		}
-		if(keyPressed && Gdx.input.isKeyPressed(Keys.D)) {
-			
-		}
+		
+		ServerInterface.send(NetMessage.HEARTBEAT, null);
 	}
 
 	@Override
@@ -63,7 +125,9 @@ public class GameScreen extends ScreenAdapter {
 
 	@Override
 	public void dispose() {
+		Gdx.app.log("GameScreen", "disposed");
 		stage.dispose();
+		netReceiveThread.interrupt();
 		ServerInterface.disconnect();
 	}
 
@@ -77,13 +141,13 @@ public class GameScreen extends ScreenAdapter {
 
 		@Override
 		public boolean keyDown(int keycode) {
-			keyPressed = true;
+			keysHeld++;
 			return true;
 		}
 		
 		@Override
 		public boolean keyUp(int keycode) {
-			keyPressed = false;
+			keysHeld--;
 			return true;
 		}
 	}

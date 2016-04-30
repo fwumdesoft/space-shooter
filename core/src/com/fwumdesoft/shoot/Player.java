@@ -8,13 +8,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public class Player extends Actor {
-	public final UUID id;
 	
 	private TextureRegion texture;
 	
 	public Player(UUID id) {
-		this.id = id;
 		texture = new TextureRegion(Main.assets.get("sprites/player.png", Texture.class));
+		
+		setUserObject(id);
 		setWidth(texture.getRegionWidth());
 		setHeight(texture.getRegionHeight());
 	}
@@ -27,5 +27,10 @@ public class Player extends Actor {
 	@Override
 	public void act(float delta) {
 		super.act(delta);
+	}
+	
+	@Override
+	public String toString() {
+		return super.toString() + " ID: " + getUserObject();
 	}
 }
