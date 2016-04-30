@@ -28,9 +28,4 @@ public class Player extends Actor {
 	public void act(float delta) {
 		super.act(delta);
 	}
-	
-	@Override
-	public String toString() {
-		return super.toString() + " ID: " + getUserObject();
-	}
 }
