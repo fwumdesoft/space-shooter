@@ -31,6 +31,7 @@ public class GameScreen extends ScreenAdapter {
 			while(!Thread.currentThread().isInterrupted()) {
 				ByteBuffer msg = ServerInterface.receive(1);
 				if(msg == null) continue;
+				@SuppressWarnings("unused")
 				final int dataLength = msg.getInt();
 				final byte netmsg = msg.get();
 				final UUID senderId = new UUID(msg.getLong(), msg.getLong());
@@ -127,7 +128,12 @@ public class GameScreen extends ScreenAdapter {
 	public void dispose() {
 		Gdx.app.log("GameScreen", "disposed");
 		stage.dispose();
-		netReceiveThread.interrupt();
+		try {
+			netReceiveThread.interrupt();
+			netReceiveThread.join();
+		} catch(InterruptedException e) {
+			netReceiveThread.interrupt();
+		}
 		ServerInterface.disconnect();
 	}
 

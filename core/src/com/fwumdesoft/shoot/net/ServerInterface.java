@@ -147,7 +147,6 @@ public class ServerInterface {
 	public static void disconnect() {
 		if(socket != null) {
 			send(NetMessage.DISCONNECT, null);
-			socket.disconnect();
 		}
 		if(sendThread != null) {
 			sendThread.interrupt();
@@ -157,6 +156,10 @@ public class ServerInterface {
 				sendThread.interrupt();
 			}
 		}
+		if(socket != null) {
+			socket.disconnect();
+		}
+		
 		sendThread = null;
 		myNetId = null;
 		socket = null;
