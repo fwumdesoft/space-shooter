@@ -59,6 +59,7 @@ public class ServerInterface {
 		//send a MSG_CONNECT to the server
 		synchronized(sndPacket.getData()) {
 			sndBuffer.rewind();
+			sndBuffer.putInt(0);
 			sndBuffer.put(MSG_CONNECT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
@@ -79,6 +80,7 @@ public class ServerInterface {
 		//send a MSG_DISCONNECT to the server
 		synchronized(sndPacket.getData()) {
 			sndBuffer.rewind();
+			sndBuffer.putInt(0);
 			sndBuffer.put(MSG_DISCONNECT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
@@ -100,6 +102,7 @@ public class ServerInterface {
 		//send a MSG_HEARTBEAT to the server
 		synchronized(sndPacket.getData()) {
 			sndBuffer.rewind();
+			sndBuffer.putInt(0);
 			sndBuffer.put(MSG_HEARTBEAT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
@@ -136,7 +139,7 @@ public class ServerInterface {
 			Gdx.app.log("ServerInterface", "Failed to receive a packet");
 			return null;
 		}
-		return ByteBuffer.wrap(rcvPacket.getData(), rcvPacket.getOffset(), rcvPacket.getLength()).asReadOnlyBuffer();
+		return ByteBuffer.wrap(rcvPacket.getData()).asReadOnlyBuffer();
 	}
 	
 	/**
