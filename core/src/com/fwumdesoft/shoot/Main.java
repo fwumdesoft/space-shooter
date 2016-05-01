@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.fwumdesoft.shoot.net.ServerInterface;
 
 public class Main extends Game {
 	
@@ -28,5 +29,7 @@ public class Main extends Game {
 		super.dispose();
 		uiskin.dispose();
 		assets.dispose();
+		if(ServerInterface.isConnected())
+			ServerInterface.disconnect();
 	}
 }
