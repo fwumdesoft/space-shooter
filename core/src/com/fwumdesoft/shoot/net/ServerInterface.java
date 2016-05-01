@@ -63,7 +63,7 @@ public class ServerInterface {
 			sndBuffer.put(MSG_CONNECT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(17);
+			sndPacket.setLength(HEADER_LENGTH);
 			send(MSG_CONNECT);
 		}
 		
@@ -84,7 +84,7 @@ public class ServerInterface {
 			sndBuffer.put(MSG_DISCONNECT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(17);
+			sndPacket.setLength(HEADER_LENGTH);
 			send(MSG_DISCONNECT);
 		}
 		
@@ -106,7 +106,7 @@ public class ServerInterface {
 			sndBuffer.put(MSG_HEARTBEAT);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(17);
+			sndPacket.setLength(HEADER_LENGTH);
 			send(MSG_HEARTBEAT);
 		}
 		
