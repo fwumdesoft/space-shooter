@@ -6,8 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -15,6 +13,7 @@ import java.util.UUID;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.Array;
 
 public class Server extends ApplicationAdapter {
 	public static FileHandle logFile;
@@ -119,6 +118,13 @@ public class Server extends ApplicationAdapter {
 						logFile.writeString("Disconnected a client ID: " + senderId + "\n", true);
 						break;
 					case MSG_HEARTBEAT:
+						//make sure the client exists
+						if(!clients.containsKey(senderId)) {
+							logFile.writeString("Client with ID: " + senderId + " tried to send a heartbeat before connecting\n", true);
+							break;
+						}
+						
+						clients.get(senderId).timeSinceLastHeartbeat = 0L;
 						break;
 					}
 				} catch(Exception e) {
@@ -134,7 +140,45 @@ public class Server extends ApplicationAdapter {
 		
 		//keeps track of every clients heart beat to ensure it is still connected
 		heartbeatThread = new Thread(() -> {
+			final DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
+			final ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			
+			long time = System.currentTimeMillis();
+			while(!Thread.currentThread().isInterrupted()) {
+				long deltaTime = System.currentTimeMillis() - time;
+				time = System.currentTimeMillis();
+				
+				//check each clients heartbeat
+				Array<UUID> removedClients = null;
+				for(Entry<UUID, Client> timeEntry : clients.entrySet()) {
+					timeEntry.getValue().timeSinceLastHeartbeat += deltaTime;
+					if(timeEntry.getValue().timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) { //boot a client if the have no heart beat
+						logFile.writeString("Dropping client " + timeEntry.getKey() + " due to lack of heartbeat\n", true);
+						
+						removedClients = removedClients == null ? new Array<>() : removedClients;
+						removedClients.add(timeEntry.getKey());
+						
+						//send a disconnect to all clients to notify them of the disconnected player
+						for(Entry<UUID, Client> clientEntry : clients.entrySet()) {
+							//construct disconnect message for all clients
+							buffer.rewind();
+							buffer.putInt(0);
+							buffer.put(MSG_DISCONNECT);
+							buffer.putLong(timeEntry.getKey().getMostSignificantBits());
+							buffer.putLong(timeEntry.getKey().getLeastSignificantBits());
+							packet.setLength(HEADER_LENGTH);
+							clientEntry.getValue().send(socket, packet);
+						}
+					}
+				}
+				
+				//avoid ConcurrentModificationException by removing clients outside of the loop
+				if(removedClients != null) {
+					for(UUID id : removedClients) {
+						clients.remove(id);
+					}
+				}
+			}
 		}, "heartbeat_thread");
 		
 		//start threads

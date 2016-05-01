@@ -14,6 +14,9 @@ public class NetConstants {
 	private NetConstants() {}
 	
 	public static final InetSocketAddress SERVER_ADDR = new InetSocketAddress("45.33.68.145", 5555);
+	public static final long HEARTBEAT_TIMEOUT = 15000L;
+	
+	//Packet constants
 	public static final int PACKET_SIZE = 256;
 	public static final int HEADER_LENGTH = 21;
 	
@@ -21,4 +24,5 @@ public class NetConstants {
 	public static final byte MSG_CONNECT = (byte)0x00;
 	public static final byte MSG_DISCONNECT = (byte)0x01;
 	public static final byte MSG_HEARTBEAT = (byte)0x02;
+	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
 }
