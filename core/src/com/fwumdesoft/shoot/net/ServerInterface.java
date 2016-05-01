@@ -131,7 +131,7 @@ public class ServerInterface {
 	 * Data in this ByteBuffer is read only. This method is blocking.
 	 * @return The ByteBuffer of the data in the {@link #rcvPacket} or null is the message failed to be received.
 	 */
-	public static ByteBuffer getRcvData() {
+	public static ByteBuffer receiveData() {
 		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
 			socket.receive(rcvPacket);

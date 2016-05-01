@@ -29,8 +29,7 @@ public class MainScreen extends ScreenAdapter {
 			public void clicked(InputEvent event, float x, float y) {
 				if(!ServerInterface.isConnected())
 					ServerInterface.connect();
-				if(ServerInterface.isConnected())
-					ServerInterface.disconnect();
+				Main.game.setScreen(new GameScreen());
 			}
 		});
 		
