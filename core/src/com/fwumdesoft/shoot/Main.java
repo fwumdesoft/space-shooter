@@ -18,8 +18,8 @@ public class Main extends Game {
 		game = this;
 		uiskin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 		assets = new AssetManager();
-		assets.load("sprites/player.png", Texture.class);
-		assets.load("sprites/bullet.png", Texture.class);
+		assets.load("textures/player.png", Texture.class);
+		assets.load("textures/bullet.png", Texture.class);
 		assets.finishLoading();
 		setScreen(new MainScreen());
 	}
