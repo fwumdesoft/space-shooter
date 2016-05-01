@@ -4,9 +4,11 @@ import java.net.InetSocketAddress;
 
 /**
  * <b>Proper Packet Structure:</b>
+ * <li>4 bytes: These bytes indicate how long the data section of the packet is.
  * <li>1 byte: This byte is a message id that identifies the type of message being sent.
  * <li>16 bytes: These bytes represent the id of the client sending the message.
- * <li>Remaining bytes: These bytes represent any data that is required by the message being sent.
+ * <li>Remaining bytes: The remaining bytes have a length equivalent the first 4 bytes.
+ * These bytes represent any data that is required by the message being sent.
  */
 public class NetConstants {
 	private NetConstants() {}
