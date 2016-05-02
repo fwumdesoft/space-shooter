@@ -1,10 +1,12 @@
 package com.fwumdesoft.shoot;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -27,9 +29,16 @@ public class MainScreen extends ScreenAdapter {
 		btnJoin.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				if(!ServerInterface.isConnected())
+				if(!ServerInterface.isConnected()) {
 					ServerInterface.connect();
-				Main.game.setScreen(new GameScreen());
+					Main.game.setScreen(new GameScreen());
+				} else {
+					new Dialog("Network Error", Main.uiskin)
+					.text("Failed to connect to the game server")
+					.button("Ok")
+					.key(Keys.ESCAPE, null).key(Keys.ENTER, null)
+					.show(stage);
+				}
 			}
 		});
 		
