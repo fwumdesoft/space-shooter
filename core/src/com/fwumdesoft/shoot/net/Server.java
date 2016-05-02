@@ -43,7 +43,7 @@ public class Server extends ApplicationAdapter {
 		ioThread = new Thread(() -> {
 			DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
-			while(!Thread.currentThread().isInterrupted()) {
+			while(!Thread.interrupted()) {
 				try {
 					socket.receive(packet);
 					buffer.rewind();
@@ -144,7 +144,7 @@ public class Server extends ApplicationAdapter {
 			final ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			
 			long time = System.currentTimeMillis();
-			while(!Thread.currentThread().isInterrupted()) {
+			while(!Thread.interrupted()) {
 				long deltaTime = System.currentTimeMillis() - time;
 				time = System.currentTimeMillis();
 				
