@@ -45,13 +45,16 @@ public class Server extends ApplicationAdapter {
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			while(!Thread.interrupted()) {
 				try {
+					packet.setLength(PACKET_SIZE);
 					socket.receive(packet);
 					buffer.rewind();
+					@SuppressWarnings("unused")
 					final int dataLength = buffer.getInt();
 					final byte msgId = buffer.get();
 					final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
-					final ByteBuffer data = ByteBuffer.wrap(packet.getData(), HEADER_LENGTH, dataLength);
-					
+					@SuppressWarnings("unused")
+					final ByteBuffer data = buffer;
+										
 //					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
 					
 					switch(msgId) {
@@ -125,6 +128,22 @@ public class Server extends ApplicationAdapter {
 						}
 						
 						clients.get(senderId).timeSinceLastHeartbeat = 0L;
+						break;
+					case MSG_UPDATE_PLAYER:
+						//make sure the client exists
+						if(!clients.containsKey(senderId)) {
+							logFile.writeString("Client with ID: " + senderId + " tried to update its position before connecting\n", true);
+							break;
+						}
+						
+						//no need to reconstruct the update player packet
+						
+						//tell all clients of the sender's new position
+						for(Entry<UUID, Client> entry : clients.entrySet()) {
+							if(!entry.getKey().equals(senderId)) {
+								entry.getValue().send(socket, packet);
+							}
+						}
 						break;
 					}
 				} catch(Exception e) {

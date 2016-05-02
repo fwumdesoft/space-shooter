@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
+import com.fwumdesoft.shoot.Player;
 
 /**
  * Provides a means for the client to communicate with the server.
@@ -112,7 +113,34 @@ public class ServerInterface {
 			send(MSG_HEARTBEAT);
 		}
 		
-		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
+//		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
+	}
+	
+	/**
+	 * Sends a {@link NetConstants#MSG_UPDATE_PLAYER} packet to the server.
+	 * <p>Only sends the player location to the server so other players know
+	 * the location of the localPlayer.
+	 * <p><b>Precondition:</b> Client is connected to the server.
+	 * @param localPlayer This computer's locally controlled player.
+	 */
+	public static void updateLocalPlayer(final Player localPlayer) {
+		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		
+		//Send a MSG_UPDATE_PLAYER to the server
+		synchronized(sndPacket.getData()) {
+			sndBuffer.rewind();
+			int dataLength = 8; //2 floats
+			sndBuffer.putInt(dataLength);
+			sndBuffer.put(MSG_UPDATE_PLAYER);
+			sndBuffer.putLong(clientId.getMostSignificantBits());
+			sndBuffer.putLong(clientId.getLeastSignificantBits());
+			sndBuffer.putFloat(localPlayer.getX());
+			sndBuffer.putFloat(localPlayer.getY());
+			sndPacket.setLength(HEADER_LENGTH + dataLength);
+			send(MSG_UPDATE_PLAYER);
+		}
+		
+		Gdx.app.debug("ServerInterface", "Sent a MSG_UPDATE_PLAYER packet");
 	}
 	
 	/**
@@ -136,6 +164,7 @@ public class ServerInterface {
 	public static ByteBuffer receiveData() {
 		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
+			rcvPacket.setLength(PACKET_SIZE);
 			socket.receive(rcvPacket);
 		} catch(SocketTimeoutException e) {
 			Gdx.app.debug("ServerInterface", "receiveData() timed out");

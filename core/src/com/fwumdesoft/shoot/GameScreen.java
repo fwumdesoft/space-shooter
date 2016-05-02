@@ -48,10 +48,11 @@ public class GameScreen extends ScreenAdapter {
 					continue;
 				}
 				
+				@SuppressWarnings("unused")
 				final int dataLength = buffer.getInt();
 				final byte msgId = buffer.get();
 				final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
-				final ByteBuffer data = buffer; //TODO don't allow a read longer than dataLength for the data buffer
+				final ByteBuffer data = buffer;
 				
 				switch(msgId) {
 				case MSG_CONNECT:
@@ -74,6 +75,24 @@ public class GameScreen extends ScreenAdapter {
 						removedActor.remove();
 					}
 					Gdx.app.log("GameScreen", "Removed a player with ID: " + senderId + " from the stage");
+					break;
+				case MSG_UPDATE_PLAYER:
+					Player player = null;
+					for(Actor a : stage.getActors()) {
+						if(a instanceof Player) {
+							Player p = (Player)a;
+							if(senderId.equals(p.netId)) {
+								player = p;
+							}
+						}
+					}
+					
+					if(player != null) {
+						player.setX(data.getFloat());
+						player.setY(data.getFloat());
+						Gdx.app.debug("GameScreen", "player ID: " + player.netId + " " + player.getX() + " " + player.getY());
+					}
+					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
 					break;
 				}
 			}

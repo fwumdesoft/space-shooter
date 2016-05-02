@@ -25,5 +25,10 @@ public class NetConstants {
 	public static final byte MSG_CONNECT = (byte)0x00;
 	public static final byte MSG_DISCONNECT = (byte)0x01;
 	public static final byte MSG_HEARTBEAT = (byte)0x02;
+	/**
+	 * <b>MSG_UPDATE_PLAYER data section structure:</b>
+	 * <li>4 bytes: The local player's x position.
+	 * <li>4 bytes: The local player's y position.
+	 */
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
 }

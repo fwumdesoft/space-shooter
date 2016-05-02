@@ -29,6 +29,7 @@ public class MainScreen extends ScreenAdapter {
 		btnJoin.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
+				//TODO properly check for connection
 				if(!ServerInterface.isConnected()) {
 					ServerInterface.connect();
 					Main.game.setScreen(new GameScreen());
