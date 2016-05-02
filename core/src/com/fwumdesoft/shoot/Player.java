@@ -16,7 +16,7 @@ public class Player extends NetActor {
 	
 	public Player(final UUID id) {
 		super(id);
-		texture = new TextureRegion(Main.assets.get("player.png", Texture.class));
+		texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
 		setWidth(texture.getRegionWidth());
 		setHeight(texture.getRegionHeight());
 	}
