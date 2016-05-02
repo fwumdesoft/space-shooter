@@ -68,7 +68,7 @@ public class Server extends ApplicationAdapter {
 						//send connection info to all clients
 						//send all clients currently connected, to the sender 
 						for(Entry<UUID, Client> entry : clients.entrySet()) {
-							if(entry.getKey().equals(senderId)) {
+							if(!entry.getKey().equals(senderId)) {
 								//construct message for all clients
 								buffer.rewind();
 								buffer.putInt(0);
