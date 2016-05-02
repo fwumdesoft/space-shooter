@@ -1,5 +1,6 @@
 package com.fwumdesoft.shoot;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -15,6 +16,7 @@ public class Main extends Game {
 	
 	@Override
 	public void create() {
+		Gdx.app.setLogLevel(Application.LOG_INFO);
 		game = this;
 		uiskin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 		assets = new AssetManager();
