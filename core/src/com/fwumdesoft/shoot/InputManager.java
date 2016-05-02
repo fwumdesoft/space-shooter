@@ -5,7 +5,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
-import com.fwumdesoft.shoot.net.ServerInterface;
 
 /**
  * Manages input for the local client.
@@ -13,35 +12,31 @@ import com.fwumdesoft.shoot.net.ServerInterface;
 public class InputManager extends InputListener {
 	private RepeatAction moveUp, moveDown, moveLeft, moveRight;
 	private final Player me;
-	private Runnable updatePosition;
 
 	/**
 	 * Instantiates an InputListener object for the local client.
+	 * <p><b>Precondition:</b> {@code localPlayer.isLocalPlayer() == true}
 	 * @param localPlayer The player that the local client controls.
 	 */
 	public InputManager(final Player localPlayer) {
+		if(!localPlayer.isLocalPlayer()) throw new IllegalArgumentException("Must be the local player");
 		me = localPlayer;
-		updatePosition = () -> {
-			if(ServerInterface.isConnected()) {
-				ServerInterface.updateLocalPlayer(me);
-			}
-		};
 	}
 	
 	@Override
 	public boolean keyDown(InputEvent event, int keycode) {
 		switch(keycode) {
 		case Keys.W:
-			me.addAction(moveUp = Actions.forever(Actions.sequence(Actions.moveBy(0, 1), Actions.run(updatePosition))));
+			me.addAction(moveUp = Actions.forever(Actions.moveBy(0, Player.SPEED)));
 			return true;
 		case Keys.A:
-			me.addAction(moveLeft = Actions.forever(Actions.sequence(Actions.moveBy(-1, 0), Actions.run(updatePosition))));
+			me.addAction(moveUp = Actions.forever(Actions.moveBy(-Player.SPEED, 0)));
 			return true;
 		case Keys.S:
-			me.addAction(moveDown = Actions.forever(Actions.sequence(Actions.moveBy(0, -1), Actions.run(updatePosition))));
+			me.addAction(moveUp = Actions.forever(Actions.moveBy(0, -Player.SPEED)));
 			return true;
 		case Keys.D:
-			me.addAction(moveRight = Actions.forever(Actions.sequence(Actions.moveBy(1, 0), Actions.run(updatePosition))));
+			me.addAction(moveUp = Actions.forever(Actions.moveBy(Player.SPEED, 0)));
 			return true;
 		}
 		return false;
