@@ -52,7 +52,7 @@ public class Server extends ApplicationAdapter {
 					final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
 					final ByteBuffer data = ByteBuffer.wrap(packet.getData(), HEADER_LENGTH, dataLength);
 					
-					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
+//					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
 					
 					switch(msgId) {
 					case MSG_CONNECT:

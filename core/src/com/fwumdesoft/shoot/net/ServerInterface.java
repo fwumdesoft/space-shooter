@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -33,13 +34,14 @@ public class ServerInterface {
 			socket = new DatagramSocket();
 			socket.setReceiveBufferSize(PACKET_SIZE);
 			socket.setSendBufferSize(PACKET_SIZE);
+			socket.setSoTimeout(CLIENT_SOCKET_TIMEOUT);
 			clientId = UUID.randomUUID();
 			rcvPacket = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
 			sndPacket = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE, SERVER_ADDR);
 			sndBuffer = ByteBuffer.wrap(sndPacket.getData());
 			Gdx.app.log("ServerInterface", "Client ID: " + clientId);
 		} catch(SocketException e) {
-			Gdx.app.log("ServerInterface", "Socket could not be created");
+			Gdx.app.error("ServerInterface", "Socket could not be created");
 		}
 	}
 	
@@ -52,7 +54,7 @@ public class ServerInterface {
 		try {
 			socket.connect(SERVER_ADDR);
 		} catch(SocketException e) {
-			Gdx.app.log("ServerInterface", "Socket could not connect to the server");
+			Gdx.app.error("ServerInterface", "Socket could not connect to the server");
 			throw new IllegalStateException("Failed to establish a connection to the server");
 		}
 		
@@ -110,7 +112,7 @@ public class ServerInterface {
 			send(MSG_HEARTBEAT);
 		}
 		
-		Gdx.app.log("ServerInterface", "Sent a MSG_HEARTBEAT packet");
+		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
 	}
 	
 	/**
@@ -135,6 +137,9 @@ public class ServerInterface {
 		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
 			socket.receive(rcvPacket);
+		} catch(SocketTimeoutException e) {
+			Gdx.app.debug("ServerInterface", "receiveData() timed out");
+			return null;
 		} catch(IOException e) {
 			Gdx.app.log("ServerInterface", "Failed to receive a packet");
 			return null;
