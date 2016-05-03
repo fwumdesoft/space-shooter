@@ -1,16 +1,19 @@
 package com.fwumdesoft.shoot;
 
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.MoveByAction;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
 
 /**
  * Manages input for the local client.
  */
 public class InputManager extends InputListener {
-	private RepeatAction moveUp, moveDown, moveLeft, moveRight;
+	private RepeatAction moveForward, moveBackward, rotateClockwise, rotateCounterclockwise;
 	private final Player me;
 
 	/**
@@ -25,18 +28,31 @@ public class InputManager extends InputListener {
 	
 	@Override
 	public boolean keyDown(InputEvent event, int keycode) {
+		//TODO better documentation
 		switch(keycode) {
 		case Keys.W:
-			me.addAction(moveUp = Actions.forever(Actions.moveBy(0, Player.SPEED)));
+			final MoveByAction moveByForward = Actions.moveBy(me.getSpeedCompX(), me.getSpeedCompY(), 0.01f, Interpolation.linear);
+			Action runnableForward = Actions.run(() -> {
+				moveByForward.setAmount(me.getSpeedCompX(), me.getSpeedCompY());
+			});
+			moveForward = Actions.forever(Actions.parallel(moveByForward, runnableForward));
+			me.addAction(moveForward);
 			return true;
 		case Keys.A:
-			me.addAction(moveLeft = Actions.forever(Actions.moveBy(-Player.SPEED, 0)));
+			rotateCounterclockwise = Actions.forever(Actions.rotateBy(Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
+			me.addAction(rotateCounterclockwise);
 			return true;
 		case Keys.S:
-			me.addAction(moveDown = Actions.forever(Actions.moveBy(0, -Player.SPEED)));
+			final MoveByAction moveByBackward = Actions.moveBy(-me.getSpeedCompX(), -me.getSpeedCompY(), 0.01f, Interpolation.linear);
+			Action runnableBackward = Actions.run(() -> {
+				moveByBackward.setAmount(-me.getSpeedCompX(), -me.getSpeedCompY());
+			});
+			moveBackward = Actions.forever(Actions.parallel(moveByBackward, runnableBackward));
+			me.addAction(moveBackward);
 			return true;
 		case Keys.D:
-			me.addAction(moveRight = Actions.forever(Actions.moveBy(Player.SPEED, 0)));
+			rotateClockwise = Actions.forever(Actions.rotateBy(-Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
+			me.addAction(rotateClockwise);
 			return true;
 		}
 		return false;
@@ -46,16 +62,16 @@ public class InputManager extends InputListener {
 	public boolean keyUp(InputEvent event, int keycode) {
 		switch(keycode) {
 		case Keys.W:
-			moveUp.finish();
+			moveForward.finish();
 			return true;
 		case Keys.A:
-			moveLeft.finish();
+			rotateCounterclockwise.finish();
 			return true;
 		case Keys.S:
-			moveDown.finish();
+			moveBackward.finish();
 			return true;
 		case Keys.D:
-			moveRight.finish();
+			rotateClockwise.finish();
 			return true;
 		}
 		return false;
