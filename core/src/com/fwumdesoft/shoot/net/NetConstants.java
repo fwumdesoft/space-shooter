@@ -43,6 +43,7 @@ public class NetConstants {
 	 * <b>MSG_UPDATE_PLAYER data section structure:</b>
 	 * <li>4 bytes: The local player's x position.
 	 * <li>4 bytes: The local player's y position.
+	 * <li>4 bytes: The local player's rotation in deg.
 	 */
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
 	/** Used to by the server to acknowledge a new connection. */
