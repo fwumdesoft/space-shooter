@@ -13,13 +13,18 @@ import java.net.InetSocketAddress;
 public class NetConstants {
 	private NetConstants() {}
 	
+	/** Remote game server address. */
 	public static final InetSocketAddress SERVER_ADDR = new InetSocketAddress("45.33.68.145", 5555);
+	/** Time in milliseconds until a user is booted from the game server. */
 	public static final long HEARTBEAT_TIMEOUT = 15000L;
-	public static final int CLIENT_SOCKET_TIMEOUT = 1000;
+	
 	
 	//Packet constants
-	public static final int PACKET_SIZE = 256;
+	/** Max length in bytes that a packet can send to and from the server. */
+	public static final int PACKET_LENGTH = 256;
+	/** Length of the header of packets sent to and from the server. */
 	public static final int HEADER_LENGTH = 21;
+	
 	
 	//Message Ids
 	public static final byte MSG_CONNECT = (byte)0x00;
