@@ -30,7 +30,7 @@ public class GameScreen extends ScreenAdapter {
 		
 		startNetReceiveThread();
 
-		localPlayer = new Player(ServerInterface.getClientId());
+		localPlayer = new Player(ServerInterface.getClientId(), true);
 		localPlayer.addListener(new InputManager(localPlayer));
 		stage.setKeyboardFocus(localPlayer);
 		stage.addActor(localPlayer);
