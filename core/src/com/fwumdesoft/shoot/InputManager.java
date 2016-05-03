@@ -30,13 +30,13 @@ public class InputManager extends InputListener {
 			me.addAction(moveUp = Actions.forever(Actions.moveBy(0, Player.SPEED)));
 			return true;
 		case Keys.A:
-			me.addAction(moveUp = Actions.forever(Actions.moveBy(-Player.SPEED, 0)));
+			me.addAction(moveLeft = Actions.forever(Actions.moveBy(-Player.SPEED, 0)));
 			return true;
 		case Keys.S:
-			me.addAction(moveUp = Actions.forever(Actions.moveBy(0, -Player.SPEED)));
+			me.addAction(moveDown = Actions.forever(Actions.moveBy(0, -Player.SPEED)));
 			return true;
 		case Keys.D:
-			me.addAction(moveUp = Actions.forever(Actions.moveBy(Player.SPEED, 0)));
+			me.addAction(moveRight = Actions.forever(Actions.moveBy(Player.SPEED, 0)));
 			return true;
 		}
 		return false;
