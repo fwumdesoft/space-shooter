@@ -23,7 +23,7 @@ public class Main extends Game {
 		assets = new AssetManager();
 		assets.load("textures/player.png", Texture.class);
 		assets.load("textures/bullet.png", Texture.class);
-		assets.load("sounds/fire_bolt.png", Sound.class);
+		assets.load("sounds/fire_bolt.mp3", Sound.class);
 		assets.finishLoading();
 		setScreen(new MainScreen());
 	}
