@@ -1,4 +1,4 @@
-package com.fwumdesoft.shoot.net;
+package com.fwumdesoft.shoot.net.server;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

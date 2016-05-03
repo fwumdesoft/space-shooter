@@ -20,25 +20,22 @@ public class ServerInterface {
 	private static UUID clientId;
 	
 	private static DatagramSocket socket;
-	/**
-	 * Packet with information to be sent to the server.
-	 */
+	/** Packet with information to be sent to the server. */
 	private static DatagramPacket sndPacket;
-	/**
-	 * Packet with information received from the server.
-	 */
+	/** Packet with information received from the server. */
 	private static DatagramPacket rcvPacket;
 	private static ByteBuffer sndBuffer;
 	
 	static {
 		try {
+			//create required data to establish a connection
 			socket = new DatagramSocket();
-			socket.setReceiveBufferSize(PACKET_SIZE);
-			socket.setSendBufferSize(PACKET_SIZE);
-			socket.setSoTimeout(CLIENT_SOCKET_TIMEOUT);
+			socket.setReceiveBufferSize(PACKET_LENGTH);
+			socket.setSendBufferSize(PACKET_LENGTH);
+			socket.setSoTimeout(1000);
 			clientId = UUID.randomUUID();
-			rcvPacket = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
-			sndPacket = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE, SERVER_ADDR);
+			rcvPacket = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
+			sndPacket = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH, SERVER_ADDR);
 			sndBuffer = ByteBuffer.wrap(sndPacket.getData());
 			Gdx.app.log("ServerInterface", "Client ID: " + clientId);
 		} catch(SocketException e) {
@@ -164,7 +161,7 @@ public class ServerInterface {
 	public static ByteBuffer receiveData() {
 		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
-			rcvPacket.setLength(PACKET_SIZE);
+			rcvPacket.setLength(PACKET_LENGTH);
 			socket.receive(rcvPacket);
 		} catch(SocketTimeoutException e) {
 			Gdx.app.debug("ServerInterface", "receiveData() timed out");

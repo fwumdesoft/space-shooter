@@ -1,4 +1,4 @@
-package com.fwumdesoft.shoot.net;
+package com.fwumdesoft.shoot.net.server;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
 
@@ -31,8 +31,8 @@ public class Server extends ApplicationAdapter {
 
 		try {
 			socket = new DatagramSocket(SERVER_ADDR);
-			socket.setReceiveBufferSize(PACKET_SIZE);
-			socket.setSendBufferSize(PACKET_SIZE);
+			socket.setReceiveBufferSize(PACKET_LENGTH);
+			socket.setSendBufferSize(PACKET_LENGTH);
 		} catch(SocketException e) {
 			logFile.writeString("Failed to create a DatagramSocket. exiting app...\n", true);
 			Gdx.app.exit();
@@ -41,11 +41,11 @@ public class Server extends ApplicationAdapter {
 		
 		//handles incoming messages
 		ioThread = new Thread(() -> {
-			DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
+			DatagramPacket packet = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			while(!Thread.interrupted()) {
 				try {
-					packet.setLength(PACKET_SIZE);
+					packet.setLength(PACKET_LENGTH);
 					socket.receive(packet);
 					buffer.rewind();
 					@SuppressWarnings("unused")
@@ -159,7 +159,7 @@ public class Server extends ApplicationAdapter {
 		
 		//keeps track of every clients heart beat to ensure it is still connected
 		heartbeatThread = new Thread(() -> {
-			final DatagramPacket packet = new DatagramPacket(new byte[PACKET_SIZE], PACKET_SIZE);
+			final DatagramPacket packet = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
 			final ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			
 			long time = System.currentTimeMillis();
