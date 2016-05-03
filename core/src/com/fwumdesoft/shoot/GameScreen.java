@@ -24,7 +24,7 @@ public class GameScreen extends ScreenAdapter {
 	
 	@Override
 	public void show() {
-		FillViewport viewport = new FillViewport(250f, 250f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
+		FillViewport viewport = new FillViewport(500f, 500f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
 		Gdx.input.setInputProcessor(stage);	
 		
@@ -90,7 +90,8 @@ public class GameScreen extends ScreenAdapter {
 					if(player != null) {
 						player.setX(data.getFloat());
 						player.setY(data.getFloat());
-						Gdx.app.debug("GameScreen", "player ID: " + player.netId + " " + player.getX() + " " + player.getY());
+						player.setRotation(data.getFloat());
+						Gdx.app.debug("GameScreen", "player ID: " + player.netId + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
 					}
 					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
 					break;
