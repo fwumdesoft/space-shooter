@@ -5,6 +5,8 @@ import java.util.UUID;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Align;
 import com.fwumdesoft.shoot.net.ServerInterface;
 
 /**
@@ -14,6 +16,7 @@ import com.fwumdesoft.shoot.net.ServerInterface;
  */
 public class Player extends NetActor {
 	public static final float SPEED = 5;
+	public static final float ROTATE_SPEED = 5;
 	
 	private TextureRegion texture;
 	private boolean isLocalPlayer;
@@ -23,6 +26,7 @@ public class Player extends NetActor {
 		texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
 		setWidth(texture.getRegionWidth());
 		setHeight(texture.getRegionHeight());
+		setOrigin(Align.center);
 	}
 	
 	public Player(final UUID id, boolean isLocalPlayer) {
@@ -42,6 +46,23 @@ public class Player extends NetActor {
 				ServerInterface.updateLocalPlayer(this);
 			}
 		}
+	}
+	
+	@Override
+	public void rotationChanged() {
+		if(isLocalPlayer()) {
+			if(ServerInterface.isConnected()) {
+				ServerInterface.updateLocalPlayer(this);
+			}
+		}
+	}
+	
+	public float getSpeedCompX() {
+		return Player.SPEED*MathUtils.cosDeg(getRotation());
+	}
+	
+	public float getSpeedCompY() {
+		return Player.SPEED*MathUtils.sinDeg(getRotation());
 	}
 	
 	public boolean isLocalPlayer() {
