@@ -54,7 +54,7 @@ public class Server extends ApplicationAdapter {
 					final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
 					@SuppressWarnings("unused")
 					final ByteBuffer data = buffer;
-										
+					
 //					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
 					
 					switch(msgId) {
@@ -67,6 +67,14 @@ public class Server extends ApplicationAdapter {
 						
 						Client newClient = new Client(senderId, packet.getSocketAddress());
 						clients.put(senderId, newClient);
+						//respond to new Client with a MSG_CONNECT_HANDSHAKE
+						buffer.rewind();
+						buffer.putInt(0);
+						buffer.put(MSG_CONNECT_HANDSHAKE);
+						buffer.putLong(senderId.getMostSignificantBits());
+						buffer.putLong(senderId.getLeastSignificantBits());
+						packet.setLength(HEADER_LENGTH);
+						newClient.send(socket, packet);
 						
 						//send connection info to all clients
 						//send all clients currently connected, to the sender 

@@ -1,5 +1,9 @@
 package com.fwumdesoft.shoot;
 
+import static com.fwumdesoft.shoot.net.NetConstants.*;
+
+import java.nio.ByteBuffer;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ScreenAdapter;
@@ -29,21 +33,41 @@ public class MainScreen extends ScreenAdapter {
 		btnJoin.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				//TODO properly check for connection
-				if(!ServerInterface.isConnected()) {
+				//Connect client to the server
+				if(!ServerInterface.isConnected()) { //ensure preconditions are followed
 					ServerInterface.connect();
-					Main.game.setScreen(new GameScreen());
+					if(ServerInterface.isConnected()) { //ensure preconditions are followed
+						ByteBuffer buffer = ServerInterface.receiveData();
+						if(buffer == null) {
+							displayNetError("Failed to connect to game server");
+							ServerInterface.disconnect();
+							return;
+						}
+						
+						if(buffer.get(MSG_ID_OFFSET) == MSG_CONNECT_HANDSHAKE)
+							Main.game.setScreen(new GameScreen());
+						else {
+							displayNetError("No response from server");
+							ServerInterface.disconnect();
+							return;
+						}
+					}
 				} else {
-					new Dialog("Network Error", Main.uiskin)
-					.text("Failed to connect to the game server")
-					.button("Ok")
-					.key(Keys.ESCAPE, null).key(Keys.ENTER, null)
-					.show(stage);
+					displayNetError("Client already connected. Try again");
+					ServerInterface.disconnect();
 				}
 			}
 		});
 		
 		root.add(btnJoin).width(100f).height(30f);
+	}
+	
+	private void displayNetError(String desc) {
+		new Dialog("Network Error", Main.uiskin)
+		.text(desc)
+		.button("Ok")
+		.key(Keys.ESCAPE, null).key(Keys.ENTER, null)
+		.show(stage);
 	}
 	
 	@Override
