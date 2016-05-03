@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.fwumdesoft.shoot.net.ServerInterface;
@@ -22,6 +23,7 @@ public class Main extends Game {
 		assets = new AssetManager();
 		assets.load("textures/player.png", Texture.class);
 		assets.load("textures/bullet.png", Texture.class);
+		assets.load("sounds/fire_bolt.png", Sound.class);
 		assets.finishLoading();
 		setScreen(new MainScreen());
 	}
