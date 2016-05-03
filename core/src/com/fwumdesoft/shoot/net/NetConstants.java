@@ -22,6 +22,12 @@ public class NetConstants {
 	//Packet constants
 	/** Max length in bytes that a packet can send to and from the server. */
 	public static final int PACKET_LENGTH = 256;
+	/** Start index of the dataLength chunk. */
+	public static final int DATA_LENGTH_OFFSET = 0;
+	/** Start index of the msgId chunk.  */
+	public static final int MSG_ID_OFFSET = 4;
+	/** Start index of the senderId chunk. */
+	public static final int UUID_OFFSET = 5;
 	/** Length of the header of packets sent to and from the server. */
 	public static final int HEADER_LENGTH = 21;
 	
