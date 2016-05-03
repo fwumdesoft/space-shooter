@@ -26,11 +26,13 @@ class Client {
 	 * @param msg
 	 */
 	void send(final DatagramSocket socket, final DatagramPacket packet) {
-		packet.setSocketAddress(address);
-		try {
-			socket.send(packet);
-		} catch(IOException e) {
-			Server.logFile.writeString("Failed to send a packet to ID: " + clientId + "\n", true);
+		synchronized(packet) {
+			packet.setSocketAddress(address);
+			try {
+				socket.send(packet);
+			} catch(IOException e) {
+				Server.logFile.writeString("Failed to send a packet to ID: " + clientId + "\n", true);
+			}
 		}
 	}
 }

@@ -27,8 +27,11 @@ public class NetConstants {
 	
 	
 	//Message Ids
+	/** Used for new player connections. */
 	public static final byte MSG_CONNECT = (byte)0x00;
+	/** Used to remove players. */
 	public static final byte MSG_DISCONNECT = (byte)0x01;
+	/** Used to tell the server that a client is still connected. */
 	public static final byte MSG_HEARTBEAT = (byte)0x02;
 	/**
 	 * <b>MSG_UPDATE_PLAYER data section structure:</b>
@@ -36,4 +39,6 @@ public class NetConstants {
 	 * <li>4 bytes: The local player's y position.
 	 */
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
+	/** Used to by the server to acknowledge a new connection. */
+	public static final byte MSG_CONNECT_HANDSHAKE = (byte)0x04;
 }
