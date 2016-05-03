@@ -126,13 +126,14 @@ public class ServerInterface {
 		//Send a MSG_UPDATE_PLAYER to the server
 		synchronized(sndPacket.getData()) {
 			sndBuffer.rewind();
-			int dataLength = 8; //2 floats
+			int dataLength = 12; //3 floats
 			sndBuffer.putInt(dataLength);
 			sndBuffer.put(MSG_UPDATE_PLAYER);
 			sndBuffer.putLong(clientId.getMostSignificantBits());
 			sndBuffer.putLong(clientId.getLeastSignificantBits());
 			sndBuffer.putFloat(localPlayer.getX());
 			sndBuffer.putFloat(localPlayer.getY());
+			sndBuffer.putFloat(localPlayer.getRotation());
 			sndPacket.setLength(HEADER_LENGTH + dataLength);
 			send(MSG_UPDATE_PLAYER);
 		}
