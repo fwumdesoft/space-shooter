@@ -14,6 +14,8 @@ public class Bolt extends NetActor implements Poolable {
 	
 	private UUID shooterId;
 	
+	public Bolt() {}
+	
 	public Bolt(final UUID netId, final UUID shooter) {
 		super(netId);
 		setShooterId(shooter);
@@ -25,7 +27,7 @@ public class Bolt extends NetActor implements Poolable {
 	 * @return This Bolt for method chaining.
 	 */
 	public Bolt setNetId(UUID id) {
-		setNetId(id);
+		super.setNetId(id);
 		return this;
 	}
 	
