@@ -13,6 +13,7 @@ import java.util.UUID;
 import com.badlogic.gdx.Gdx;
 import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.Player;
+import com.sun.security.ntlm.Client;
 
 /**
  * Provides a means for the client to communicate with the server.
@@ -59,12 +60,7 @@ public class ServerInterface {
 		
 		//send a MSG_CONNECT to the server
 		synchronized(sndPacket.getData()) {
-			sndBuffer.rewind();
-			sndBuffer.putInt(0);
-			sndBuffer.put(MSG_CONNECT);
-			sndBuffer.putLong(clientId.getMostSignificantBits());
-			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(HEADER_LENGTH);
+			createHeader(0, MSG_CONNECT);
 			send(MSG_CONNECT);
 		}
 		
@@ -80,12 +76,7 @@ public class ServerInterface {
 		
 		//send a MSG_DISCONNECT to the server
 		synchronized(sndPacket.getData()) {
-			sndBuffer.rewind();
-			sndBuffer.putInt(0);
-			sndBuffer.put(MSG_DISCONNECT);
-			sndBuffer.putLong(clientId.getMostSignificantBits());
-			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(HEADER_LENGTH);
+			createHeader(0, MSG_DISCONNECT);
 			send(MSG_DISCONNECT);
 		}
 		
@@ -102,12 +93,7 @@ public class ServerInterface {
 		
 		//send a MSG_HEARTBEAT to the server
 		synchronized(sndPacket.getData()) {
-			sndBuffer.rewind();
-			sndBuffer.putInt(0);
-			sndBuffer.put(MSG_HEARTBEAT);
-			sndBuffer.putLong(clientId.getMostSignificantBits());
-			sndBuffer.putLong(clientId.getLeastSignificantBits());
-			sndPacket.setLength(HEADER_LENGTH);
+			createHeader(0, MSG_HEARTBEAT);
 			send(MSG_HEARTBEAT);
 		}
 		
@@ -126,16 +112,10 @@ public class ServerInterface {
 		
 		//Send a MSG_UPDATE_PLAYER to the server
 		synchronized(sndPacket.getData()) {
-			sndBuffer.rewind();
-			int dataLength = 12; //3 floats
-			sndBuffer.putInt(dataLength);
-			sndBuffer.put(MSG_UPDATE_PLAYER);
-			sndBuffer.putLong(clientId.getMostSignificantBits());
-			sndBuffer.putLong(clientId.getLeastSignificantBits());
+			createHeader(12, MSG_UPDATE_PLAYER); //3 floats
 			sndBuffer.putFloat(localPlayer.getX());
 			sndBuffer.putFloat(localPlayer.getY());
 			sndBuffer.putFloat(localPlayer.getRotation());
-			sndPacket.setLength(HEADER_LENGTH + dataLength);
 			send(MSG_UPDATE_PLAYER);
 		}
 		
@@ -153,18 +133,12 @@ public class ServerInterface {
 		
 		//Send a MSG_SPAWN_BOLT packet to the server
 		synchronized(sndPacket.getData()) {
-			sndBuffer.rewind();
-			int dataLength = 28; //2 longs & 3 floats
-			sndBuffer.putInt(dataLength);
-			sndBuffer.put(MSG_SPAWN_BOLT);
-			sndBuffer.putLong(clientId.getMostSignificantBits());
-			sndBuffer.putLong(clientId.getLeastSignificantBits());
+			createHeader(28, MSG_SPAWN_BOLT); //2 longs & 3 floats
 			sndBuffer.putLong(bolt.getNetId().getMostSignificantBits());
 			sndBuffer.putLong(bolt.getNetId().getLeastSignificantBits());
 			sndBuffer.putFloat(bolt.getX());
 			sndBuffer.putFloat(bolt.getY());
 			sndBuffer.putFloat(bolt.getRotation());
-			sndPacket.setLength(HEADER_LENGTH + dataLength);
 			send(MSG_SPAWN_BOLT);
 		}
 		
@@ -172,13 +146,26 @@ public class ServerInterface {
 	}
 	
 	/**
+	 * Sets up the header the packet to be sent to the server.
+	 * <p><b>Postcondition:</b> The length of the packet will be set appropriately. 
+	 * @param dataLength Length of the data chunk of the packet.
+	 * @param msgId Id of the message being sent.
+	 */
+	private static void createHeader(int dataLength, byte msgId) {
+		sndBuffer.rewind();
+		sndBuffer.putInt(dataLength);
+		sndBuffer.put(msgId);
+		sndBuffer.putLong(clientId.getMostSignificantBits());
+		sndBuffer.putLong(clientId.getLeastSignificantBits());
+		sndPacket.setLength(HEADER_LENGTH + dataLength);
+	}
+	
+	/**
 	 * Sends the packet to the server.
-	 * <p><b>Precondition:</b> Client is connected to the server.
 	 * @param msgId gives the method a hint to know what type of message it is sending.
 	 * Useful for debugging.
 	 */
 	private static void send(byte msgId) {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
 			socket.send(sndPacket);
 		} catch(IOException e) {
