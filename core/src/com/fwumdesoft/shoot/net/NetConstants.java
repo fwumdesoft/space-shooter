@@ -52,6 +52,8 @@ public class NetConstants {
 	public static final byte MSG_SPAWN_BOLT = (byte)0x05;
 	/**
 	 * Generic update packet that will update a specific actor for the client based on its netId.
+	 * <li>8 bytes: The actor's most significant bytes of its netId.
+	 * <li>8 bytes: The actor's least significant bytes of its netId.
 	 * <li>4 bytes: The actor's x position.
 	 * <li>4 bytes: The actor's y position.
 	 * <li>4 bytes: The actor's rotation.
