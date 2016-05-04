@@ -46,6 +46,15 @@ public class NetConstants {
 	 * <li>4 bytes: The local player's rotation in deg.
 	 */
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
-	/** Used to by the server to acknowledge a new connection. */
+	/** Used by the server to acknowledge a new connection. */
 	public static final byte MSG_CONNECT_HANDSHAKE = (byte)0x04;
+	/** Used by the client to tell the server that a bolt has been fired. */
+	public static final byte MSG_SPAWN_BOLT = (byte)0x05;
+	/**
+	 * Generic update packet that will update a specific actor for the client based on its netId.
+	 * <li>4 bytes: The actor's x position.
+	 * <li>4 bytes: The actor's y position.
+	 * <li>4 bytes: The actor's rotation.
+	 */
+	public static final byte MSG_UPDATE = (byte)0x06;
 }
