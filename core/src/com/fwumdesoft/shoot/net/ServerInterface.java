@@ -11,7 +11,8 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import com.badlogic.gdx.Gdx;
-import com.fwumdesoft.shoot.Player;
+import com.fwumdesoft.shoot.model.Bolt;
+import com.fwumdesoft.shoot.model.Player;
 
 /**
  * Provides a means for the client to communicate with the server.
@@ -115,8 +116,8 @@ public class ServerInterface {
 	
 	/**
 	 * Sends a {@link NetConstants#MSG_UPDATE_PLAYER} packet to the server.
-	 * <p>Only sends the player location to the server so other players know
-	 * the location of the localPlayer.
+	 * <p>Sends the player location and rotation to the server so other players know
+	 * the location and rotation of the localPlayer.
 	 * <p><b>Precondition:</b> Client is connected to the server.
 	 * @param localPlayer This computer's locally controlled player.
 	 */
@@ -139,6 +140,35 @@ public class ServerInterface {
 		}
 		
 		Gdx.app.debug("ServerInterface", "Sent a MSG_UPDATE_PLAYER packet");
+	}
+	
+	/**
+	 * Sends a {@link NetConstants#MSG_SPAWN_BOLT} packet to the server.
+	 * <p>Tells the server that a Bolt has been fired by a player.
+	 * <p><b>Precondition:</b> Client is connected to the server.
+	 * @param Bolt Bolt that was spawned.
+	 */
+	public static void spawnBolt(Bolt bolt) {
+		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		
+		//Send a MSG_SPAWN_BOLT packet to the server
+		synchronized(sndPacket.getData()) {
+			sndBuffer.rewind();
+			int dataLength = 28; //2 longs & 3 floats
+			sndBuffer.putInt(dataLength);
+			sndBuffer.put(MSG_SPAWN_BOLT);
+			sndBuffer.putLong(clientId.getMostSignificantBits());
+			sndBuffer.putLong(clientId.getLeastSignificantBits());
+			sndBuffer.putLong(bolt.getNetId().getMostSignificantBits());
+			sndBuffer.putLong(bolt.getNetId().getLeastSignificantBits());
+			sndBuffer.putFloat(bolt.getX());
+			sndBuffer.putFloat(bolt.getY());
+			sndBuffer.putFloat(bolt.getRotation());
+			sndPacket.setLength(HEADER_LENGTH + dataLength);
+			send(MSG_SPAWN_BOLT);
+		}
+		
+		Gdx.app.debug("ServerInterface", "Sent a MSG_SPAWN_BOLT packet");
 	}
 	
 	/**
