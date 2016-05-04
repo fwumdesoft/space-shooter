@@ -26,15 +26,19 @@ public class Player extends NetActor {
 	private boolean isLocalPlayer;
 	private Rectangle hitbox;
 	
-	public Player(final UUID id) {
-		super(id);
-		if(Gdx.app.getType() != ApplicationType.HeadlessDesktop)
-			texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
+	public Player() {
 		setWidth(40);
 		setHeight(40);
 		setOrigin(Align.center);
 		setScale(0.5f);
 		hitbox = new Rectangle(0, 0, getWidth(), getHeight()); //TODO use a different implementation for hitbox
+	}
+	
+	public Player(final UUID id) {
+		this();
+		setNetId(id);
+		if(Gdx.app.getType() != ApplicationType.HeadlessDesktop)
+			texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
 	}
 	
 	public Player(final UUID id, boolean isLocalPlayer) {
@@ -45,6 +49,12 @@ public class Player extends NetActor {
 	@Override
 	public void draw(Batch batch, float parentAlpha) {
 		batch.draw(texture, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
+	}
+	
+	@Override
+	public void reset() {
+		setNetId(null);
+		isLocalPlayer = false;
 	}
 	
 	@Override

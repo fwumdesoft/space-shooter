@@ -14,20 +14,18 @@ public class Bolt extends NetActor implements Poolable {
 	
 	private UUID shooterId;
 	
-	public Bolt() {}
-	
 	public Bolt(final UUID netId, final UUID shooter) {
 		super(netId);
-		this.shooterId = shooter;
+		setShooterId(shooter);
 	}
 	
 	/**
-	 * Sets this Bolt's netId.
-	 * @param id new Id.
+	 * {@inheritDoc}
+	 * @param id new netId.
 	 * @return This Bolt for method chaining.
 	 */
 	public Bolt setNetId(UUID id) {
-		netId = id;
+		setNetId(id);
 		return this;
 	}
 	
@@ -55,7 +53,9 @@ public class Bolt extends NetActor implements Poolable {
 
 	@Override
 	public void reset() {
-		netId = null;
-		shooterId = null;
+		setNetId(null);
+		setShooterId(null);
+		setRotation(0);
+		setPosition(0, 0);
 	}
 }
