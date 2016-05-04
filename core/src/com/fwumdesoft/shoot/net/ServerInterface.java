@@ -13,7 +13,6 @@ import java.util.UUID;
 import com.badlogic.gdx.Gdx;
 import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.Player;
-import com.sun.security.ntlm.Client;
 
 /**
  * Provides a means for the client to communicate with the server.
