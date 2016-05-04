@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.fwumdesoft.shoot.model.NetActor;
+import com.fwumdesoft.shoot.model.Player;
 import com.fwumdesoft.shoot.net.ServerInterface;
 
 public class GameScreen extends ScreenAdapter {
