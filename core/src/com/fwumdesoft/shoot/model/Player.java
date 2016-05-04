@@ -1,4 +1,4 @@
-package com.fwumdesoft.shoot;
+package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
 
@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Align;
+import com.fwumdesoft.shoot.Main;
 import com.fwumdesoft.shoot.net.ServerInterface;
 
 /**

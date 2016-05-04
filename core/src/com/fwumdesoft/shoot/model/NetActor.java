@@ -1,4 +1,4 @@
-package com.fwumdesoft.shoot;
+package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
 
