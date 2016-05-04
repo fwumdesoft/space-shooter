@@ -43,6 +43,7 @@ public class GameScreen extends ScreenAdapter {
 	private void startNetReceiveThread() {
 		netReceiveThread = new Thread(() -> {
 			while(!Thread.interrupted()) {
+				if(!ServerInterface.isConnected()) continue;
 				ByteBuffer buffer = ServerInterface.receiveData();
 				if(buffer == null) {
 					Gdx.app.debug("GameScreen", "Skipped a message from the server");
