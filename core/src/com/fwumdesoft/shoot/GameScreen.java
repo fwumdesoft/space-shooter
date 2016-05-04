@@ -23,7 +23,7 @@ public class GameScreen extends ScreenAdapter {
 	
 	@Override
 	public void show() {
-		FillViewport viewport = new FillViewport(1000f, 1000f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
+		FillViewport viewport = new FillViewport(500, 500f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
 		Gdx.input.setInputProcessor(stage);	
 		
