@@ -47,9 +47,9 @@ public class InputManager extends InputListener {
 			
 		case Keys.S: //move the player backward
 			
-			final MoveByAction moveByBackward = Actions.moveBy(-me.getSpeedCompX(), -me.getSpeedCompY(), 0.01f, Interpolation.linear);
+			final MoveByAction moveByBackward = Actions.moveBy(-me.getSpeedCompX()*0.25f, -me.getSpeedCompY()*0.25f, 0.01f, Interpolation.linear);
 			Action runnableBackward = Actions.run(() -> {
-				moveByBackward.setAmount(-me.getSpeedCompX(), -me.getSpeedCompY());
+				moveByBackward.setAmount(-me.getSpeedCompX()*0.25f, -me.getSpeedCompY()*0.25f);
 			});
 			moveBackward = Actions.forever(Actions.parallel(moveByBackward, runnableBackward));
 			me.addAction(moveBackward);
@@ -70,12 +70,14 @@ public class InputManager extends InputListener {
 		switch(keycode) {
 		case Keys.W:
 			moveForward.finish();
+			me.addAction(Actions.moveBy(me.getSpeedCompX()*10, me.getSpeedCompY()*10, 1.5f, Interpolation.pow5Out));
 			return true;
 		case Keys.A:
 			rotateCounterclockwise.finish();
 			return true;
 		case Keys.S:
 			moveBackward.finish();
+			me.addAction(Actions.moveBy(-me.getSpeedCompX()*2.5f, -me.getSpeedCompY()*2.5f, 1.5f, Interpolation.pow5Out));
 			return true;
 		case Keys.D:
 			rotateClockwise.finish();
