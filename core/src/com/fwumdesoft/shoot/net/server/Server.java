@@ -125,6 +125,7 @@ public class Server extends ApplicationAdapter {
 							break;
 						}
 						
+						//remove Client from clients HashMap and from simulationStage
 						clients.remove(senderId);
 						for(int i = 0; i < simulationStage.getActors().size; i++) {
 							Actor a = simulationStage.getActors().get(i);
