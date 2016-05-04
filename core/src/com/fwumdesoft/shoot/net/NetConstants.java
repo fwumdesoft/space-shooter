@@ -48,7 +48,13 @@ public class NetConstants {
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
 	/** Used by the server to acknowledge a new connection. */
 	public static final byte MSG_CONNECT_HANDSHAKE = (byte)0x04;
-	/** Used by the client to tell the server that a bolt has been fired. */
+	/** Used by the client to tell the server that a bolt has been fired.
+	 * <li>8 bytes: The bolt's most significant bytes of its netId.
+	 * <li>8 bytes: The bolt's least significant bytes of its netId.
+	 * <li>4 bytes: The bolt's x position.
+	 * <li>4 bytes: The bolt's y position.
+	 * <li>4 bytes: The bolt's rotation.
+	 */
 	public static final byte MSG_SPAWN_BOLT = (byte)0x05;
 	/**
 	 * Generic update packet that will update a specific actor for the client based on its netId.
