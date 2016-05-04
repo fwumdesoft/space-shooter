@@ -79,23 +79,35 @@ public class GameScreen extends ScreenAdapter {
 					Gdx.app.log("GameScreen", "Removed a player with ID: " + senderId + " from the stage");
 					break;
 				case MSG_UPDATE_PLAYER:
-					Player player = null;
 					for(Actor a : stage.getActors()) {
 						if(a instanceof Player) {
-							Player p = (Player)a;
-							if(senderId.equals(p.getNetId())) {
-								player = p;
+							Player player = (Player)a;
+							if(senderId.equals(player.getNetId())) {
+								player.setX(data.getFloat());
+								player.setY(data.getFloat());
+								player.setRotation(data.getFloat());
+								Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
+							}
+						}
+					}
+					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
+					break;
+				case MSG_UPDATE:
+					UUID netId = new UUID(data.getLong(), data.getLong());
+					float x = data.getFloat();
+					float y = data.getFloat();
+					float rot = data.getFloat();
+					for(Actor a : stage.getActors()) {
+						if(a instanceof NetActor) {
+							NetActor n = (NetActor)a;
+							if(n.getNetId().equals(netId)) {
+								n.setPosition(x, y);
+								n.setRotation(rot);
 							}
 						}
 					}
 					
-					if(player != null) {
-						player.setX(data.getFloat());
-						player.setY(data.getFloat());
-						player.setRotation(data.getFloat());
-						Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
-					}
-					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
+					Gdx.app.debug("GameScreen", "Updated NetActor ID: " + netId);
 					break;
 				}
 			}
