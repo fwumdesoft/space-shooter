@@ -18,7 +18,7 @@ import com.fwumdesoft.shoot.model.Player;
  * Provides a means for the client to communicate with the server.
  */
 public class ServerInterface {
-	private static UUID clientId;
+	private static final UUID clientId;
 	
 	private static DatagramSocket socket;
 	/** Packet with information to be sent to the server. */
@@ -28,13 +28,13 @@ public class ServerInterface {
 	private static ByteBuffer sndBuffer;
 	
 	static {
+		clientId = UUID.randomUUID();
 		try {
 			//create required data to establish a connection
 			socket = new DatagramSocket();
 			socket.setReceiveBufferSize(PACKET_LENGTH);
 			socket.setSendBufferSize(PACKET_LENGTH);
 			socket.setSoTimeout(1000);
-			clientId = UUID.randomUUID();
 			rcvPacket = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
 			sndPacket = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH, SERVER_ADDR);
 			sndBuffer = ByteBuffer.wrap(sndPacket.getData());
@@ -198,7 +198,7 @@ public class ServerInterface {
 			Gdx.app.debug("ServerInterface", "receiveData() timed out");
 			return null;
 		} catch(IOException e) {
-			Gdx.app.log("ServerInterface", "Failed to receive a packet");
+			Gdx.app.error("ServerInterface", "Failed to receive a packet");
 			return null;
 		}
 		return ByteBuffer.wrap(rcvPacket.getData()).asReadOnlyBuffer();
@@ -213,7 +213,6 @@ public class ServerInterface {
 	}
 	
 	public static UUID getClientId() {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		return clientId;
 	}
 }
