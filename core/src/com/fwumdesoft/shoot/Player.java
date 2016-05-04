@@ -2,6 +2,7 @@ package com.fwumdesoft.shoot;
 
 import java.util.UUID;
 
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -45,6 +46,8 @@ public class Player extends NetActor {
 			if(ServerInterface.isConnected()) {
 				ServerInterface.updateLocalPlayer(this);
 			}
+			
+			((OrthographicCamera)getStage().getCamera()).position.set(getX() + getOriginX(), getY() + getOriginY(), 1);
 		}
 	}
 	
