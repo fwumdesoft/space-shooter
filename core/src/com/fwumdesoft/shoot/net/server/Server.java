@@ -13,7 +13,16 @@ import java.util.UUID;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.Pools;
+import com.fwumdesoft.shoot.model.Bolt;
+import com.fwumdesoft.shoot.model.NetActor;
+import com.fwumdesoft.shoot.model.Player;
 
 public class Server extends ApplicationAdapter {
 	public static FileHandle logFile;
@@ -22,6 +31,9 @@ public class Server extends ApplicationAdapter {
 	private DatagramSocket socket;
 	
 	private HashMap<UUID, Client> clients;
+	
+	private Stage simulationStage;
+	private Pool<Bolt> boltPool;
 	
 	@Override
 	public void create() {
@@ -37,7 +49,10 @@ public class Server extends ApplicationAdapter {
 			logFile.writeString("Failed to create a DatagramSocket. exiting app...\n", true);
 			Gdx.app.exit();
 		}
+		
 		clients = new HashMap<>();
+		simulationStage = new Stage();
+		boltPool = Pools.get(Bolt.class);
 		
 		//handles incoming messages
 		ioThread = new Thread(() -> {
@@ -52,7 +67,6 @@ public class Server extends ApplicationAdapter {
 					final int dataLength = buffer.getInt();
 					final byte msgId = buffer.get();
 					final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
-					@SuppressWarnings("unused")
 					final ByteBuffer data = buffer;
 					
 //					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
@@ -67,6 +81,8 @@ public class Server extends ApplicationAdapter {
 						
 						Client newClient = new Client(senderId, packet.getSocketAddress());
 						clients.put(senderId, newClient);
+						simulationStage.addActor(new Player(senderId, false));
+						
 						//respond to new Client with a MSG_CONNECT_HANDSHAKE
 						buffer.rewind();
 						buffer.putInt(0);
@@ -110,6 +126,16 @@ public class Server extends ApplicationAdapter {
 						}
 						
 						clients.remove(senderId);
+						for(int i = 0; i < simulationStage.getActors().size; i++) {
+							Actor a = simulationStage.getActors().get(i);
+							if(a instanceof Player) {
+								Player p = (Player)a;
+								if(p.getNetId().equals(senderId)) {
+									p.remove();
+									break;
+								}
+							}
+						}
 						
 						//construct message
 						buffer.rewind();
@@ -143,8 +169,20 @@ public class Server extends ApplicationAdapter {
 							logFile.writeString("Client with ID: " + senderId + " tried to update its position before connecting\n", true);
 							break;
 						}
-						
-						//no need to reconstruct the update player packet
+
+						//update simulationStage
+						float x = data.getFloat();
+						float y = data.getFloat();
+						float rot = data.getFloat();
+						for(Actor a : simulationStage.getActors()) {
+							if(a instanceof NetActor) {
+								NetActor n = (NetActor)a;
+								if(n.getNetId().equals(senderId)) {
+									n.setPosition(x, y);
+									n.setRotation(rot);
+								}
+							}
+						}
 						
 						//tell all clients of the sender's new position
 						for(Entry<UUID, Client> entry : clients.entrySet()) {
@@ -153,6 +191,22 @@ public class Server extends ApplicationAdapter {
 							}
 						}
 						break;
+					case MSG_SPAWN_BOLT:
+						//make sure the client exists
+						if(!clients.containsKey(senderId)) {
+							logFile.writeString("Client with ID: " + senderId + " tried to fire a bolt before connecting\n", true);
+							break;
+						}
+						
+						Bolt newBolt = boltPool.obtain();
+						simulationStage.addActor(newBolt);
+						
+						//tell all clients of the sender's new position
+						for(Entry<UUID, Client> entry : clients.entrySet()) {
+							if(!entry.getKey().equals(senderId)) {
+								entry.getValue().send(socket, packet);
+							}
+						}
 					}
 				} catch(Exception e) {
 					logFile.writeString("Failed to receive a packet\n", true);
@@ -162,7 +216,46 @@ public class Server extends ApplicationAdapter {
 		
 		//simulates movement of server authoritative entities
 		simulationThread = new Thread(() -> {
+			DatagramPacket packet = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
+			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			
+			float time = System.currentTimeMillis() / 1000f;
+			while(!Thread.interrupted()) {
+				//add actions before acting
+				for(Actor a : simulationStage.getActors()) {
+					if(a instanceof Bolt) {
+						Bolt b = (Bolt)a;
+						b.addAction(Actions.moveBy(b.getSpeedCompX(), b.getSpeedCompY(), 0.25f, Interpolation.linear));
+					}
+				}
+				
+				//simulate actors
+				float deltaTime = System.currentTimeMillis()/1000f - time;
+				time = System.currentTimeMillis()/1000f;
+				simulationStage.act(deltaTime);
+				
+				//send packets to update the actors for clients
+				for(Client client : clients.values()) {
+					for(Actor a : simulationStage.getActors()) {
+						if(a instanceof Bolt) {
+							Bolt bolt = (Bolt)a;
+							buffer.rewind();
+							int dataLength = 28; //2 longs & 3 floats
+							buffer.putInt(dataLength);
+							buffer.put(MSG_UPDATE);
+							buffer.putLong(bolt.getShooterId().getMostSignificantBits());
+							buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
+							buffer.putLong(bolt.getNetId().getMostSignificantBits());
+							buffer.putLong(bolt.getNetId().getLeastSignificantBits());
+							buffer.putFloat(bolt.getX());
+							buffer.putFloat(bolt.getY());
+							buffer.putFloat(bolt.getRotation());
+							packet.setLength(HEADER_LENGTH + dataLength);
+							client.send(socket, packet);
+						}
+					}
+				}
+			}
 		}, "simulation_thread");
 		
 		//keeps track of every clients heart beat to ensure it is still connected

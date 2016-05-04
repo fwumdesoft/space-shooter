@@ -62,7 +62,7 @@ public class NetConstants {
 	 * <li>8 bytes: The actor's least significant bytes of its netId.
 	 * <li>4 bytes: The actor's x position.
 	 * <li>4 bytes: The actor's y position.
-	 * <li>4 bytes: The actor's rotation.
+	 * <li>4 bytes: The actor's rotation in deg.
 	 */
 	public static final byte MSG_UPDATE = (byte)0x06;
 }

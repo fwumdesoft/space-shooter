@@ -66,7 +66,7 @@ public class GameScreen extends ScreenAdapter {
 					for(Actor a : stage.getActors()) {
 						if(a instanceof NetActor) {
 							NetActor netActor = (NetActor)a;
-							if(senderId.equals(netActor.netId)) {
+							if(senderId.equals(netActor.getNetId())) {
 								removedActor = netActor;
 								break;
 							}
@@ -82,7 +82,7 @@ public class GameScreen extends ScreenAdapter {
 					for(Actor a : stage.getActors()) {
 						if(a instanceof Player) {
 							Player p = (Player)a;
-							if(senderId.equals(p.netId)) {
+							if(senderId.equals(p.getNetId())) {
 								player = p;
 							}
 						}
@@ -92,7 +92,7 @@ public class GameScreen extends ScreenAdapter {
 						player.setX(data.getFloat());
 						player.setY(data.getFloat());
 						player.setRotation(data.getFloat());
-						Gdx.app.debug("GameScreen", "player ID: " + player.netId + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
+						Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
 					}
 					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
 					break;

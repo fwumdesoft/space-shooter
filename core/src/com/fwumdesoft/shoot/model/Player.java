@@ -2,10 +2,13 @@ package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
 
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Align;
 import com.fwumdesoft.shoot.Main;
 import com.fwumdesoft.shoot.net.ServerInterface;
@@ -21,14 +24,17 @@ public class Player extends NetActor {
 	
 	private TextureRegion texture;
 	private boolean isLocalPlayer;
+	private Rectangle hitbox;
 	
 	public Player(final UUID id) {
 		super(id);
-		texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
-		setWidth(texture.getRegionWidth());
-		setHeight(texture.getRegionHeight());
+		if(Gdx.app.getType() != ApplicationType.HeadlessDesktop)
+			texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
+		setWidth(40);
+		setHeight(40);
 		setOrigin(Align.center);
 		setScale(0.5f);
+		hitbox = new Rectangle(0, 0, getWidth(), getHeight()); //TODO use a different implementation for hitbox
 	}
 	
 	public Player(final UUID id, boolean isLocalPlayer) {
@@ -66,7 +72,7 @@ public class Player extends NetActor {
 	 * @return The x-component of velocity.
 	 */
 	public float getSpeedCompX() {
-		return Player.SPEED*MathUtils.cosDeg(getRotation());
+		return SPEED*MathUtils.cosDeg(getRotation());
 	}
 	
 	/**
@@ -74,7 +80,7 @@ public class Player extends NetActor {
 	 * @return The y-component of velocity.
 	 */
 	public float getSpeedCompY() {
-		return Player.SPEED*MathUtils.sinDeg(getRotation());
+		return SPEED*MathUtils.sinDeg(getRotation());
 	}
 	
 	public boolean isLocalPlayer() {
