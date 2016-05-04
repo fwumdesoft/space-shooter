@@ -30,33 +30,37 @@ public class InputManager extends InputListener {
 	public boolean keyDown(InputEvent event, int keycode) {
 		switch(keycode) {
 		case Keys.W: //move the player forward
-			//moves the player forward relative to the direction the player is facing
+			
 			final MoveByAction moveByForward = Actions.moveBy(me.getSpeedCompX(), me.getSpeedCompY(), 0.01f, Interpolation.linear);
-			//updates the speed in case the player's direction changes during movement
 			Action runnableForward = Actions.run(() -> {
 				moveByForward.setAmount(me.getSpeedCompX(), me.getSpeedCompY());
 			});
 			moveForward = Actions.forever(Actions.parallel(moveByForward, runnableForward));
 			me.addAction(moveForward);
 			return true;
+			
 		case Keys.A: //rotate the player counter clockwise
+			
 			rotateCounterclockwise = Actions.forever(Actions.rotateBy(Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
 			me.addAction(rotateCounterclockwise);
 			return true;
+			
 		case Keys.S: //move the player backward
-			//moves the player backward relative to the direction the player is facing
+			
 			final MoveByAction moveByBackward = Actions.moveBy(-me.getSpeedCompX(), -me.getSpeedCompY(), 0.01f, Interpolation.linear);
-			//updates the speed in case the player's direction changes during movement
 			Action runnableBackward = Actions.run(() -> {
 				moveByBackward.setAmount(-me.getSpeedCompX(), -me.getSpeedCompY());
 			});
 			moveBackward = Actions.forever(Actions.parallel(moveByBackward, runnableBackward));
 			me.addAction(moveBackward);
 			return true;
+			
 		case Keys.D: //rotate the player clockwise
+			
 			rotateClockwise = Actions.forever(Actions.rotateBy(-Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
 			me.addAction(rotateClockwise);
 			return true;
+			
 		}
 		return false;
 	}
