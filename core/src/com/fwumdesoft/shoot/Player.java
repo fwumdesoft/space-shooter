@@ -60,10 +60,18 @@ public class Player extends NetActor {
 		}
 	}
 	
+	/**
+	 * Gets this player's velocity x-component relative to the forward direction of this player.
+	 * @return The x-component of velocity.
+	 */
 	public float getSpeedCompX() {
 		return Player.SPEED*MathUtils.cosDeg(getRotation());
 	}
 	
+	/**
+	 * Gets this player's velocity y-component relative to the forward direction of this player.
+	 * @return The y-component of velocity.
+	 */
 	public float getSpeedCompY() {
 		return Player.SPEED*MathUtils.sinDeg(getRotation());
 	}
