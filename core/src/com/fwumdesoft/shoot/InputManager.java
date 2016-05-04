@@ -1,5 +1,8 @@
 package com.fwumdesoft.shoot;
 
+import java.util.UUID;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Action;
@@ -8,13 +11,18 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.actions.MoveByAction;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
+import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.Pools;
+import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.Player;
+import com.fwumdesoft.shoot.net.ServerInterface;
 
 /**
  * Manages input for the local client.
  */
 public class InputManager extends InputListener {
 	private RepeatAction moveForward, moveBackward, rotateClockwise, rotateCounterclockwise;
+	private Pool<Bolt> boltPool;
 	private final Player me;
 
 	/**
@@ -24,6 +32,7 @@ public class InputManager extends InputListener {
 	 */
 	public InputManager(final Player localPlayer) {
 		if(!localPlayer.isLocalPlayer()) throw new IllegalArgumentException("Must be the local player");
+		boltPool = Pools.get(Bolt.class);
 		me = localPlayer;
 	}
 	
@@ -60,6 +69,15 @@ public class InputManager extends InputListener {
 			
 			rotateClockwise = Actions.forever(Actions.rotateBy(-Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
 			me.addAction(rotateClockwise);
+			return true;
+			
+		case Keys.SPACE:
+			
+			Bolt bolt = boltPool.obtain()
+				.setNetId(UUID.randomUUID())
+				.setShooterId(ServerInterface.getClientId());
+			me.getStage().addActor(bolt);
+			ServerInterface.spawnBolt(bolt);
 			return true;
 			
 		}
