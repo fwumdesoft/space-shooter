@@ -51,7 +51,6 @@ public class Server extends ApplicationAdapter {
 		}
 		
 		clients = new HashMap<>();
-		simulationStage = new Stage();
 		boltPool = Pools.get(Bolt.class);
 		
 		//handles incoming messages
@@ -81,7 +80,6 @@ public class Server extends ApplicationAdapter {
 						
 						Client newClient = new Client(senderId, packet.getSocketAddress());
 						clients.put(senderId, newClient);
-						simulationStage.addActor(new Player(senderId, false));
 						
 						//respond to new Client with a MSG_CONNECT_HANDSHAKE
 						buffer.rewind();
@@ -127,16 +125,6 @@ public class Server extends ApplicationAdapter {
 						
 						//remove Client from clients HashMap and from simulationStage
 						clients.remove(senderId);
-						for(int i = 0; i < simulationStage.getActors().size; i++) {
-							Actor a = simulationStage.getActors().get(i);
-							if(a instanceof Player) {
-								Player p = (Player)a;
-								if(p.getNetId().equals(senderId)) {
-									p.remove();
-									break;
-								}
-							}
-						}
 						
 						//construct message
 						buffer.rewind();
@@ -175,15 +163,6 @@ public class Server extends ApplicationAdapter {
 						float x = data.getFloat();
 						float y = data.getFloat();
 						float rot = data.getFloat();
-						for(Actor a : simulationStage.getActors()) {
-							if(a instanceof NetActor) {
-								NetActor n = (NetActor)a;
-								if(n.getNetId().equals(senderId)) {
-									n.setPosition(x, y);
-									n.setRotation(rot);
-								}
-							}
-						}
 						
 						//tell all clients of the sender's new position
 						for(Entry<UUID, Client> entry : clients.entrySet()) {
@@ -198,9 +177,6 @@ public class Server extends ApplicationAdapter {
 							logFile.writeString("Client with ID: " + senderId + " tried to fire a bolt before connecting\n", true);
 							break;
 						}
-						
-						Bolt newBolt = boltPool.obtain();
-						simulationStage.addActor(newBolt);
 						
 						//tell all clients of the sender's new position
 						for(Entry<UUID, Client> entry : clients.entrySet()) {
@@ -234,6 +210,7 @@ public class Server extends ApplicationAdapter {
 				float deltaTime = System.currentTimeMillis()/1000f - time;
 				time = System.currentTimeMillis()/1000f;
 				simulationStage.act(deltaTime);
+				
 				
 				//send packets to update the actors for clients
 				for(Client client : clients.values()) {
@@ -304,7 +281,7 @@ public class Server extends ApplicationAdapter {
 		
 		//start threads
 		ioThread.start();
-		simulationThread.start();
+//		simulationThread.start();
 		heartbeatThread.start();
 	}
 
