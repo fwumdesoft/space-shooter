@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FillViewport;
@@ -15,16 +16,14 @@ import com.fwumdesoft.shoot.net.ServerInterface;
 
 public class GameScreen extends ScreenAdapter {
 	private Stage stage;
-	/**
-	 * The player controlled by the computer running the application.
-	 */
+	/** The player controlled by the computer running the application. */
 	private Player localPlayer;
 	
 	private Thread netReceiveThread;
 	
 	@Override
 	public void show() {
-		FillViewport viewport = new FillViewport(500f, 500f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
+		FillViewport viewport = new FillViewport(1000f, 1000f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
 		Gdx.input.setInputProcessor(stage);	
 		
@@ -110,6 +109,10 @@ public class GameScreen extends ScreenAdapter {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		
+		stage.getBatch().begin();
+		stage.getBatch().draw(Main.assets.get("textures/background.png", Texture.class), 0, 0);
+		stage.getBatch().end();
 		
 		stage.act(delta);
 		stage.draw();
