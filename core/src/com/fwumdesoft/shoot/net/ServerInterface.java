@@ -111,7 +111,7 @@ public class ServerInterface {
 			send(MSG_HEARTBEAT);
 		}
 		
-//		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
+		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
 	}
 	
 	/**
@@ -178,6 +178,7 @@ public class ServerInterface {
 	 * Useful for debugging.
 	 */
 	private static void send(byte msgId) {
+		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
 		try {
 			socket.send(sndPacket);
 		} catch(IOException e) {
