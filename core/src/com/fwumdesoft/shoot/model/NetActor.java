@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 /**
  * An Actor that has a netId so it can be associated with an Object on the server.
  */
-public abstract class NetActor extends Actor {
+public class NetActor extends Actor {
 	private UUID netId;
 	
 	public NetActor() {}
