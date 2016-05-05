@@ -6,21 +6,17 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.UUID;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.math.Interpolation;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.NetActor;
-import com.fwumdesoft.shoot.model.Player;
 
 public class Server extends ApplicationAdapter {
 	public static FileHandle logFile;
@@ -30,8 +26,8 @@ public class Server extends ApplicationAdapter {
 	
 	private HashMap<UUID, Client> clients;
 	
-	private Stage simulationStage;
 	private Pool<Bolt> boltPool;
+	private HashSet<NetActor> netActors;
 	
 	@Override
 	public void create() {
@@ -50,6 +46,7 @@ public class Server extends ApplicationAdapter {
 		
 		clients = new HashMap<>();
 		boltPool = Pools.get(Bolt.class);
+		netActors = new HashSet<>();
 		
 		//handles incoming messages
 		ioThread = new Thread(() -> {
@@ -79,6 +76,7 @@ public class Server extends ApplicationAdapter {
 						
 						Client newClient = new Client(senderId, packet.getSocketAddress());
 						clients.put(senderId, newClient);
+						//TODO add player to list of netActors.
 						
 						//respond to new Client with a MSG_CONNECT_HANDSHAKE
 						buffer.rewind();
@@ -91,8 +89,8 @@ public class Server extends ApplicationAdapter {
 						
 						//send connection info to all clients
 						//send all clients currently connected, to the sender 
-						for(Entry<UUID, Client> entry : clients.entrySet()) {
-							if(!entry.getKey().equals(senderId)) {
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
 								//construct message for all clients
 								buffer.rewind();
 								buffer.putInt(0);
@@ -100,14 +98,14 @@ public class Server extends ApplicationAdapter {
 								buffer.putLong(senderId.getMostSignificantBits());
 								buffer.putLong(senderId.getLeastSignificantBits());
 								packet.setLength(HEADER_LENGTH);
-								entry.getValue().send(socket, packet);
+								c.send(socket, packet);
 								
 								//construct message for the newClient
 								buffer.rewind();
 								buffer.putInt(0);
 								buffer.put(MSG_CONNECT);
-								buffer.putLong(entry.getKey().getMostSignificantBits());
-								buffer.putLong(entry.getKey().getLeastSignificantBits());
+								buffer.putLong(c.clientId.getMostSignificantBits());
+								buffer.putLong(c.clientId.getLeastSignificantBits());
 								packet.setLength(HEADER_LENGTH);
 								newClient.send(socket, packet);
 							}
@@ -122,8 +120,9 @@ public class Server extends ApplicationAdapter {
 							break;
 						}
 						
-						//remove Client from clients HashMap and from simulationStage
+						//remove Client from clients HashMap
 						clients.remove(senderId);
+						//TODO remove player from list of netActors
 						
 						//construct message
 						buffer.rewind();
@@ -134,9 +133,9 @@ public class Server extends ApplicationAdapter {
 						packet.setLength(HEADER_LENGTH);
 						
 						//send message to all clients
-						for(Entry<UUID, Client> entry : clients.entrySet()) {
-							if(!entry.getKey().equals(senderId)) {
-								clients.get(entry.getKey()).send(socket, packet);
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
+								c.send(socket, packet);
 							}
 						}
 						
@@ -157,16 +156,13 @@ public class Server extends ApplicationAdapter {
 							logFile.writeString("Client with ID: " + senderId + " tried to update its position before connecting\n", true);
 							break;
 						}
-						
-						//update simulationStage
-						float x = data.getFloat();
-						float y = data.getFloat();
-						float rot = data.getFloat();
+
+						//TODO update local copy of Player
 						
 						//tell all clients of the sender's new position
-						for(Entry<UUID, Client> entry : clients.entrySet()) {
-							if(!entry.getKey().equals(senderId)) {
-								entry.getValue().send(socket, packet);
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
+								c.send(socket, packet);
 							}
 						}
 						break;
@@ -177,10 +173,21 @@ public class Server extends ApplicationAdapter {
 							break;
 						}
 						
-						//tell all clients of the sender's new position
-						for(Entry<UUID, Client> entry : clients.entrySet()) {
-							if(!entry.getKey().equals(senderId)) {
-								entry.getValue().send(socket, packet);
+						//add bolt to list of actors
+						UUID boltNetId = new UUID(data.getLong(), data.getLong());
+						float boltX = data.getFloat();
+						float boltY = data.getFloat();
+						float boltRot = data.getFloat();
+						float boltSpeed = data.getFloat();
+						Bolt newBolt = boltPool.obtain().setShooterId(senderId).setSpeed(boltSpeed).setNetId(boltNetId);
+						newBolt.setPosition(boltX, boltY);
+						newBolt.setRotation(boltRot);
+						netActors.add(newBolt);
+						
+						//tell all clients that a bolt was spawned
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
+								c.send(socket, packet);
 							}
 						}
 					}
@@ -197,24 +204,53 @@ public class Server extends ApplicationAdapter {
 			
 			float time = System.currentTimeMillis() / 1000f;
 			while(!Thread.interrupted()) {
-				//add actions before acting
-				for(Actor a : simulationStage.getActors()) {
-					if(a instanceof Bolt) {
-						Bolt b = (Bolt)a;
-						b.addAction(Actions.moveBy(b.getSpeedCompX(), b.getSpeedCompY(), 0.25f, Interpolation.linear));
+				float deltaTime = System.currentTimeMillis() / 1000f - time;
+				time = System.currentTimeMillis() / 1000f;
+				
+				//simulate actors
+				Array<NetActor> removedActors = null;
+				for(NetActor actor : netActors) {
+					if(actor instanceof Bolt) {
+						Bolt bolt = (Bolt)actor;
+						bolt.moveBy(bolt.getSpeedCompX() * deltaTime, bolt.getSpeedCompY() * deltaTime);
+						if(bolt.getX() < 0 || bolt.getX() > 2000 || bolt.getY() < 0 || bolt.getY() > 1000) { //remove the bolt if its out of bounds
+							removedActors = removedActors == null ? new Array<>() : removedActors;
+							removedActors.add(bolt);
+							Pools.free(bolt);
+							
+							//Send a MSG_REMOVE_BOLT packet to all clients
+							buffer.rewind();
+							int dataLength = 32; //4 longs
+							buffer.putInt(dataLength);
+							buffer.put(MSG_REMOVE_BOLT);
+							buffer.putLong(bolt.getShooterId().getMostSignificantBits());
+							buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
+							buffer.putLong(bolt.getNetId().getMostSignificantBits());
+							buffer.putLong(bolt.getNetId().getLeastSignificantBits());
+							buffer.putLong(0);
+							buffer.putLong(0);
+							packet.setLength(HEADER_LENGTH + dataLength);
+							for(Client c : clients.values()) {
+								c.send(socket, packet);
+							}
+						}
 					}
 				}
 				
-				//simulate actors
-				float deltaTime = System.currentTimeMillis() / 1000f - time;
-				time = System.currentTimeMillis() / 1000f;
-				simulationStage.act(deltaTime);
+				//remove actors that should be deleted
+				if(removedActors != null) {
+					synchronized(netActors) {
+						for(NetActor actor : removedActors) {
+							netActors.remove(actor);
+						}
+					}
+				}
 				
 				//send packets to update the actors for clients
 				for(Client client : clients.values()) {
-					for(Actor a : simulationStage.getActors()) {
-						if(a instanceof Bolt) {
-							Bolt bolt = (Bolt)a;
+					for(NetActor actor : netActors) {
+						if(actor instanceof Bolt) {
+							Bolt bolt = (Bolt)actor;
 							buffer.rewind();
 							int dataLength = 28; //2 longs & 3 floats
 							buffer.putInt(dataLength);
