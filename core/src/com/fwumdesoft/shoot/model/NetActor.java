@@ -1,6 +1,7 @@
 package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
+
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 /**
@@ -26,6 +27,7 @@ public class NetActor extends Actor {
 	public UUID getNetId() {
 		return netId;
 	}
+	
 	
 	@Override
 	protected void positionChanged() {
