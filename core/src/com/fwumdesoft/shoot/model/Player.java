@@ -48,7 +48,7 @@ public class Player extends NetActor {
 	}
 	
 	@Override
-	public void positionChanged() {
+	public void positionChanged(float deltaX, float deltaY) {
 		if(isLocalPlayer()) {
 			if(ServerInterface.isConnected()) {
 				ServerInterface.updateLocalPlayer(this);
@@ -59,7 +59,7 @@ public class Player extends NetActor {
 	}
 	
 	@Override
-	public void rotationChanged() {
+	public void rotationChanged(float deltaRot) {
 		if(isLocalPlayer()) {
 			if(ServerInterface.isConnected()) {
 				ServerInterface.updateLocalPlayer(this);
