@@ -2,15 +2,15 @@ package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
 /**
- * Represents a bolt on the client and on the server. Only
- * gets drawn for the client.
+ * Represents a bolt on the client and on the server. Only gets drawn for the client.
+ * This class is designed be be used only in a {@link Pool}.
  */
 public class Bolt extends NetActor implements Poolable {
-	public static final float SPEED = 15f;
-	
+	private float speed;
 	private UUID shooterId;
 	
 	/**
@@ -23,7 +23,7 @@ public class Bolt extends NetActor implements Poolable {
 	}
 	
 	/**
-	 * Sets this Bolt's shooterId.
+	 * Sets this Bolt's shooterId or the Id of the {@link Player} that fired the bolt.
 	 * @param id new Id.
 	 * @return This Bolt for method chaining.
 	 */
@@ -36,12 +36,17 @@ public class Bolt extends NetActor implements Poolable {
 		return shooterId;
 	}
 	
+	public Bolt setSpeed(float newSpeed) {
+		speed = newSpeed;
+		return this;
+	}
+	
 	public float getSpeedCompX() {
-		return SPEED * MathUtils.cosDeg(getRotation());
+		return speed * MathUtils.cosDeg(getRotation());
 	}
 	
 	public float getSpeedCompY() {
-		return SPEED * MathUtils.sinDeg(getRotation());
+		return speed * MathUtils.sinDeg(getRotation());
 	}
 	
 	@Override
