@@ -52,6 +52,7 @@ public class NetConstants {
 	 * <li>4 bytes: The bolt's x position.
 	 * <li>4 bytes: The bolt's y position.
 	 * <li>4 bytes: The bolt's rotation.
+	 * <li>4 bytes: the bolt's speed.
 	 */
 	public static final byte MSG_SPAWN_BOLT = (byte)0x05;
 	/**
@@ -63,4 +64,12 @@ public class NetConstants {
 	 * <li>4 bytes: The actor's rotation in deg.
 	 */
 	public static final byte MSG_UPDATE = (byte)0x06;
+	/**
+	 * Used to remove a Bolt from the game regardless of if it was out of bounds or if it hit a player.
+	 * <li>8 bytes: The bolt's most significant bytes of its netId.
+	 * <li>8 bytes: The bolt's least significant bytes of its netId.
+	 * <li>8 bytes: The most significant bytes of the netId of the player that was hit. 0 if no player was hit.
+	 * <li>8 bytes: The least significant bytes of the netId of the player that was hit. 0 if no player was hit.
+	 */
+	public static final byte MSG_REMOVE_BOLT = (byte)0x07;
 }

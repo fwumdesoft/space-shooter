@@ -135,12 +135,13 @@ public class ServerInterface {
 		
 		//Send a MSG_SPAWN_BOLT packet to the server
 		synchronized(sndPacket.getData()) {
-			createHeader(28, MSG_SPAWN_BOLT); //2 longs & 3 floats
+			createHeader(32, MSG_SPAWN_BOLT); //2 longs & 4 floats
 			sndBuffer.putLong(bolt.getNetId().getMostSignificantBits());
 			sndBuffer.putLong(bolt.getNetId().getLeastSignificantBits());
 			sndBuffer.putFloat(bolt.getX());
 			sndBuffer.putFloat(bolt.getY());
 			sndBuffer.putFloat(bolt.getRotation());
+			sndBuffer.putFloat(bolt.getSpeed());
 			send(MSG_SPAWN_BOLT);
 		}
 		
