@@ -2,6 +2,7 @@ package com.fwumdesoft.shoot;
 
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.utils.Pool;
 import com.badlogic.gdx.utils.Pools;
 import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.Player;
+import com.fwumdesoft.shoot.net.ServerInterface;
 
 /**
  * Manages input for the local client.
@@ -38,7 +40,6 @@ public class InputManager extends InputListener {
 		switch(keycode)
 		{
 		case Keys.W: //move the player forward
-			
 			final MoveByAction moveByForward = Actions.moveBy(me.getSpeedCompX(), me.getSpeedCompY(), 0.01f, Interpolation.linear);
 			Action runnableForward = Actions.run(() -> {
 				moveByForward.setAmount(me.getSpeedCompX(), me.getSpeedCompY());
@@ -46,15 +47,11 @@ public class InputManager extends InputListener {
 			moveForward = Actions.forever(Actions.parallel(moveByForward, runnableForward));
 			me.addAction(moveForward);
 			return true;
-		
 		case Keys.A: //rotate the player counter clockwise
-			
 			rotateCounterclockwise = Actions.forever(Actions.rotateBy(Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
 			me.addAction(rotateCounterclockwise);
 			return true;
-		
 		case Keys.S: //move the player backward
-			
 			final MoveByAction moveByBackward = Actions.moveBy(-me.getSpeedCompX() * 0.25f, -me.getSpeedCompY() * 0.25f, 0.01f, Interpolation.linear);
 			Action runnableBackward = Actions.run(() -> {
 				moveByBackward.setAmount(-me.getSpeedCompX() * 0.25f, -me.getSpeedCompY() * 0.25f);
@@ -62,22 +59,18 @@ public class InputManager extends InputListener {
 			moveBackward = Actions.forever(Actions.parallel(moveByBackward, runnableBackward));
 			me.addAction(moveBackward);
 			return true;
-		
 		case Keys.D: //rotate the player clockwise
-			
 			rotateClockwise = Actions.forever(Actions.rotateBy(-Player.ROTATE_SPEED, 0.01f, Interpolation.linear));
 			me.addAction(rotateClockwise);
 			return true;
-		
-		case Keys.SPACE:
-		
-//			Bolt bolt = boltPool.obtain()
-//				.setNetId(UUID.randomUUID())
-//				.setShooterId(ServerInterface.getClientId());
-//			me.getStage().addActor(bolt);
-//			ServerInterface.spawnBolt(bolt);
+		case Keys.SPACE: //fire a bolt
+			Bolt bolt = (Bolt)boltPool.obtain().setShooterId(ServerInterface.getClientId()).setSpeed(me.getSpeed() + 15f);
+			bolt.setPosition((me.getX() + me.getOriginX()) * MathUtils.cosDeg(me.getRotation()),
+					(me.getY() + 2 * me.getOriginY() + 2) * MathUtils.sinDeg(me.getRotation()));
+			bolt.setRotation(me.getRotation());
+			me.getStage().addActor(bolt);
+			ServerInterface.spawnBolt(bolt);
 			return true;
-		
 		}
 		return false;
 	}

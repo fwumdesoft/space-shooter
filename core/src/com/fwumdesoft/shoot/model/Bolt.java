@@ -51,9 +51,10 @@ public class Bolt extends NetActor implements Poolable {
 	
 	@Override
 	public void reset() {
-		setNetId(null);
+		setNetId(UUID.randomUUID());
 		setShooterId(null);
 		setRotation(0);
 		setPosition(0, 0);
+		setSpeed(0);
 	}
 }
