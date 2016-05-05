@@ -183,7 +183,9 @@ public class Server extends ApplicationAdapter {
 						Bolt newBolt = boltPool.obtain().setShooterId(senderId).setSpeed(boltSpeed).setNetId(boltNetId);
 						newBolt.setPosition(boltX, boltY);
 						newBolt.setRotation(boltRot);
-						netActors.add(newBolt);
+						synchronized(netActors) {
+							netActors.add(newBolt);
+						}
 						
 						//tell all clients that a bolt was spawned
 						for(Client c : clients.values()) {
@@ -210,29 +212,31 @@ public class Server extends ApplicationAdapter {
 				
 				//simulate actors
 				Array<NetActor> removedActors = null;
-				for(NetActor actor : netActors) { //TODO fix concurrent mod exception here
-					if(actor instanceof Bolt) {
-						Bolt bolt = (Bolt)actor;
-						bolt.moveBy(bolt.getSpeedCompX() * deltaTime, bolt.getSpeedCompY() * deltaTime);
-						if(bolt.getX() < 0 || bolt.getX() > 2000 || bolt.getY() < 0 || bolt.getY() > 1000) { //remove the bolt if its out of bounds
-							removedActors = removedActors == null ? new Array<>() : removedActors;
-							removedActors.add(bolt);
-							Pools.free(bolt);
-							
-							//Send a MSG_REMOVE_BOLT packet to all clients
-							buffer.rewind();
-							int dataLength = 32; //4 longs
-							buffer.putInt(dataLength);
-							buffer.put(MSG_REMOVE_BOLT);
-							buffer.putLong(bolt.getShooterId().getMostSignificantBits());
-							buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
-							buffer.putLong(bolt.getNetId().getMostSignificantBits());
-							buffer.putLong(bolt.getNetId().getLeastSignificantBits());
-							buffer.putLong(0);
-							buffer.putLong(0);
-							packet.setLength(HEADER_LENGTH + dataLength);
-							for(Client c : clients.values()) {
-								c.send(socket, packet);
+				synchronized(netActors) {
+					for(NetActor actor : netActors) { //TODO fix concurrent mod exception here
+						if(actor instanceof Bolt) {
+							Bolt bolt = (Bolt)actor;
+							bolt.moveBy(bolt.getSpeedCompX() * deltaTime, bolt.getSpeedCompY() * deltaTime);
+							if(bolt.getX() < 0 || bolt.getX() > 2000 || bolt.getY() < 0 || bolt.getY() > 1000) { //remove the bolt if its out of bounds
+								removedActors = removedActors == null ? new Array<>() : removedActors;
+								removedActors.add(bolt);
+								Pools.free(bolt);
+								
+								//Send a MSG_REMOVE_BOLT packet to all clients
+								buffer.rewind();
+								int dataLength = 32; //4 longs
+								buffer.putInt(dataLength);
+								buffer.put(MSG_REMOVE_BOLT);
+								buffer.putLong(bolt.getShooterId().getMostSignificantBits());
+								buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
+								buffer.putLong(bolt.getNetId().getMostSignificantBits());
+								buffer.putLong(bolt.getNetId().getLeastSignificantBits());
+								buffer.putLong(0);
+								buffer.putLong(0);
+								packet.setLength(HEADER_LENGTH + dataLength);
+								for(Client c : clients.values()) {
+									c.send(socket, packet);
+								}
 							}
 						}
 					}
@@ -248,23 +252,25 @@ public class Server extends ApplicationAdapter {
 				}
 				
 				//send packets to update the actors for clients
-				for(Client client : clients.values()) {
-					for(NetActor actor : netActors) {
-						if(actor instanceof Bolt) {
-							Bolt bolt = (Bolt)actor;
-							buffer.rewind();
-							int dataLength = 28; //2 longs & 3 floats
-							buffer.putInt(dataLength);
-							buffer.put(MSG_UPDATE);
-							buffer.putLong(bolt.getShooterId().getMostSignificantBits());
-							buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
-							buffer.putLong(bolt.getNetId().getMostSignificantBits());
-							buffer.putLong(bolt.getNetId().getLeastSignificantBits());
-							buffer.putFloat(bolt.getX());
-							buffer.putFloat(bolt.getY());
-							buffer.putFloat(bolt.getRotation());
-							packet.setLength(HEADER_LENGTH + dataLength);
-							client.send(socket, packet);
+				synchronized(netActors) {
+					for(Client client : clients.values()) {
+						for(NetActor actor : netActors) {
+							if(actor instanceof Bolt) {
+								Bolt bolt = (Bolt)actor;
+								buffer.rewind();
+								int dataLength = 28; //2 longs & 3 floats
+								buffer.putInt(dataLength);
+								buffer.put(MSG_UPDATE);
+								buffer.putLong(bolt.getShooterId().getMostSignificantBits());
+								buffer.putLong(bolt.getShooterId().getLeastSignificantBits());
+								buffer.putLong(bolt.getNetId().getMostSignificantBits());
+								buffer.putLong(bolt.getNetId().getLeastSignificantBits());
+								buffer.putFloat(bolt.getX());
+								buffer.putFloat(bolt.getY());
+								buffer.putFloat(bolt.getRotation());
+								packet.setLength(HEADER_LENGTH + dataLength);
+								client.send(socket, packet);
+							}
 						}
 					}
 				}
