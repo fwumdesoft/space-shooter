@@ -17,22 +17,18 @@ import com.fwumdesoft.shoot.net.ServerInterface;
  * authority over the position of the player.
  */
 public class Player extends NetActor {
-	public static final float SPEED = 5;
+	private float speed = 5;
 	public static final float ROTATE_SPEED = 3f;
 	
 	private TextureRegion texture;
 	private boolean isLocalPlayer;
 	
-	public Player() {
+	public Player(final UUID id) {
+		setNetId(id);
 		setWidth(40);
 		setHeight(40);
 		setOrigin(Align.center);
 		setScale(0.5f);
-	}
-	
-	public Player(final UUID id) {
-		this();
-		setNetId(id);
 		if(Gdx.app.getType() != ApplicationType.HeadlessDesktop)
 			texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
 	}
@@ -67,12 +63,21 @@ public class Player extends NetActor {
 		}
 	}
 	
+	public Player setSpeed(float newSpeed) {
+		speed = newSpeed;
+		return this;
+	}
+	
+	public float getSpeed() {
+		return speed;
+	}
+	
 	/**
 	 * Gets this player's velocity x-component relative to the forward direction of this player.
 	 * @return The x-component of velocity.
 	 */
 	public float getSpeedCompX() {
-		return SPEED * MathUtils.cosDeg(getRotation());
+		return speed * MathUtils.cosDeg(getRotation());
 	}
 	
 	/**
@@ -80,7 +85,7 @@ public class Player extends NetActor {
 	 * @return The y-component of velocity.
 	 */
 	public float getSpeedCompY() {
-		return SPEED * MathUtils.sinDeg(getRotation());
+		return speed * MathUtils.sinDeg(getRotation());
 	}
 	
 	public boolean isLocalPlayer() {
