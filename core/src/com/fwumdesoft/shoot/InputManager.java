@@ -64,7 +64,7 @@ public class InputManager extends InputListener {
 			me.addAction(rotateClockwise);
 			return true;
 		case Keys.SPACE: //fire a bolt
-			Bolt bolt = (Bolt)boltPool.obtain().setShooterId(ServerInterface.getClientId()).setSpeed(me.getSpeed() + 15f);
+			Bolt bolt = boltPool.obtain().setShooterId(ServerInterface.getClientId()).setSpeed(me.getSpeed() + 15f);
 			bolt.setPosition((me.getX() + me.getOriginX()) * MathUtils.cosDeg(me.getRotation()),
 					(me.getY() + 2 * me.getOriginY() + 2) * MathUtils.sinDeg(me.getRotation()));
 			bolt.setRotation(me.getRotation());
