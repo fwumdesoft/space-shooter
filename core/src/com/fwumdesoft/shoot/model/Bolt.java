@@ -36,9 +36,19 @@ public class Bolt extends NetActor implements Poolable {
 		return shooterId;
 	}
 	
+	@Override
+	public Bolt setNetId(UUID newId) {
+		super.setNetId(newId);
+		return this;
+	}
+	
 	public Bolt setSpeed(float newSpeed) {
 		speed = newSpeed;
 		return this;
+	}
+	
+	public float getSpeed() {
+		return speed;
 	}
 	
 	public float getSpeedCompX() {
