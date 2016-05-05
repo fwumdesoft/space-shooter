@@ -35,9 +35,9 @@ public class Bolt extends NetActor implements Poolable {
 	public Bolt() {
 		super(UUID.randomUUID());
 		shooterId = null;
-		setWidth(16);
-		setHeight(8);
-		setOrigin(Align.center);
+		setWidth(12);
+		setHeight(4);
+		setOrigin(Align.left);
 	}
 	
 	@Override

@@ -2,7 +2,7 @@ package com.fwumdesoft.shoot;
 
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Interpolation;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -65,8 +65,10 @@ public class InputManager extends InputListener {
 			return true;
 		case Keys.SPACE: //fire a bolt
 			Bolt bolt = boltPool.obtain().setShooterId(ServerInterface.getClientId()).setSpeed(me.getSpeed() + 15f);
-			bolt.setPosition((me.getX() + me.getOriginX()) * MathUtils.cosDeg(me.getRotation()),
-					(me.getY() + 2 * me.getOriginY() + 2) * MathUtils.sinDeg(me.getRotation()));
+			Vector2 boltSpawn = new Vector2(me.getOriginX(), 0);
+			boltSpawn.rotate(me.getRotation());
+			boltSpawn.add(me.getX() + me.getOriginX(), me.getY() + me.getOriginY());
+			bolt.setPosition(boltSpawn.x, boltSpawn.y);
 			bolt.setRotation(me.getRotation());
 			me.getStage().addActor(bolt);
 			ServerInterface.spawnBolt(bolt);

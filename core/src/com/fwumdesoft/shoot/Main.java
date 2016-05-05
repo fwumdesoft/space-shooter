@@ -22,7 +22,7 @@ public class Main extends Game {
 		uiskin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 		assets = new AssetManager();
 		assets.load("textures/player.png", Texture.class);
-		assets.load("textures/bullet.png", Texture.class);
+		assets.load("textures/bolt.png", Texture.class);
 		assets.load("textures/background.png", Texture.class);
 		assets.load("sounds/fire_bolt.mp3", Sound.class);
 		assets.finishLoading();

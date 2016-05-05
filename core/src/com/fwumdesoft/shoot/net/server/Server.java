@@ -77,6 +77,7 @@ public class Server extends ApplicationAdapter {
 						Client newClient = new Client(senderId, packet.getSocketAddress());
 						clients.put(senderId, newClient);
 						//TODO add player to list of netActors.
+						//TODO send all new players every bolt on the field right nows=
 						
 						//respond to new Client with a MSG_CONNECT_HANDSHAKE
 						buffer.rewind();
@@ -209,7 +210,7 @@ public class Server extends ApplicationAdapter {
 				
 				//simulate actors
 				Array<NetActor> removedActors = null;
-				for(NetActor actor : netActors) {
+				for(NetActor actor : netActors) { //TODO fix concurrent mod exception here
 					if(actor instanceof Bolt) {
 						Bolt bolt = (Bolt)actor;
 						bolt.moveBy(bolt.getSpeedCompX() * deltaTime, bolt.getSpeedCompY() * deltaTime);

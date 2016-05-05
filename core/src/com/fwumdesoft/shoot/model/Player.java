@@ -28,7 +28,6 @@ public class Player extends NetActor {
 		setWidth(40);
 		setHeight(40);
 		setOrigin(Align.center);
-		setScale(0.5f);
 		if(Gdx.app.getType() != ApplicationType.HeadlessDesktop)
 			texture = new TextureRegion(Main.assets.get("textures/player.png", Texture.class));
 	}
@@ -51,6 +50,8 @@ public class Player extends NetActor {
 			}
 			
 			getStage().getCamera().position.set(getX() + getOriginX(), getY() + getOriginY(), 1);
+			
+//			Gdx.app.log("Player", getX() + ", " + getY());
 		}
 	}
 	
