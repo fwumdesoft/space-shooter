@@ -1,7 +1,6 @@
 package com.fwumdesoft.shoot.net;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,7 +8,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
-
 import com.badlogic.gdx.Gdx;
 import com.fwumdesoft.shoot.model.Bolt;
 import com.fwumdesoft.shoot.model.Player;
@@ -49,7 +47,8 @@ public class ServerInterface {
 	 * <p><b>Precondition:</b> Client isn't connected to the server.
 	 */
 	public static void connect() {
-		if(isConnected()) throw new IllegalStateException("Client is already connected to the server");
+		if(isConnected())
+			throw new IllegalStateException("Client is already connected to the server");
 		try {
 			socket.connect(SERVER_ADDR);
 		} catch(SocketException e) {
@@ -71,7 +70,8 @@ public class ServerInterface {
 	 * <p><b>Precondition:</b> Client is connected to the server.
 	 */
 	public static void disconnect() {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		if(!isConnected())
+			throw new IllegalStateException("Client isn't connected to the server");
 		
 		//send a MSG_DISCONNECT to the server
 		synchronized(sndPacket.getData()) {
@@ -88,7 +88,8 @@ public class ServerInterface {
 	 * <p><b>Precondition:</b> Client is connected to the server.
 	 */
 	public static void heartbeat() {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		if(!isConnected())
+			throw new IllegalStateException("Client isn't connected to the server");
 		
 		//send a MSG_HEARTBEAT to the server
 		synchronized(sndPacket.getData()) {
@@ -107,7 +108,8 @@ public class ServerInterface {
 	 * @param localPlayer This computer's locally controlled player.
 	 */
 	public static void updateLocalPlayer(final Player localPlayer) {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		if(!isConnected())
+			throw new IllegalStateException("Client isn't connected to the server");
 		
 		//Send a MSG_UPDATE_PLAYER to the server
 		synchronized(sndPacket.getData()) {
@@ -128,7 +130,8 @@ public class ServerInterface {
 	 * @param Bolt Bolt that was spawned.
 	 */
 	public static void spawnBolt(Bolt bolt) {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		if(!isConnected())
+			throw new IllegalStateException("Client isn't connected to the server");
 		
 		//Send a MSG_SPAWN_BOLT packet to the server
 		synchronized(sndPacket.getData()) {
@@ -177,7 +180,8 @@ public class ServerInterface {
 	 * @return The ByteBuffer of the data in the {@link #rcvPacket} or null is the message failed to be received.
 	 */
 	public static ByteBuffer receiveData() {
-		if(!isConnected()) throw new IllegalStateException("Client isn't connected to the server");
+		if(!isConnected())
+			throw new IllegalStateException("Client isn't connected to the server");
 		try {
 			rcvPacket.setLength(PACKET_LENGTH);
 			socket.receive(rcvPacket);

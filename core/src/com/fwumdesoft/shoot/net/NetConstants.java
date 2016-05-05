@@ -18,8 +18,7 @@ public class NetConstants {
 	/** Time in milliseconds until a user is booted from the game server. */
 	public static final long HEARTBEAT_TIMEOUT = 15000L;
 	
-	
-	//Packet constants
+	// Packet constants
 	/** Max length in bytes that a packet can send to and from the server. */
 	public static final int PACKET_LENGTH = 256;
 	/** Start index of the dataLength chunk. */
@@ -31,8 +30,7 @@ public class NetConstants {
 	/** Length of the header of packets sent to and from the server. */
 	public static final int HEADER_LENGTH = 21;
 	
-	
-	//Message Ids
+	// Message Ids
 	/** Used for new player connections. */
 	public static final byte MSG_CONNECT = (byte)0x00;
 	/** Used to remove players. */

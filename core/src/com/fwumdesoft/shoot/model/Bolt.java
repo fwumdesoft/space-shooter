@@ -1,7 +1,6 @@
 package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
-
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
@@ -14,21 +13,13 @@ public class Bolt extends NetActor implements Poolable {
 	
 	private UUID shooterId;
 	
-	public Bolt() {}
-	
-	public Bolt(final UUID netId, final UUID shooter) {
-		super(netId);
-		setShooterId(shooter);
-	}
-	
 	/**
-	 * {@inheritDoc}
-	 * @param id new netId.
-	 * @return This Bolt for method chaining.
+	 * Instantiates a blank Bolt Actor.
+	 * <b>Should only be called by a pool when a new instance needs to be created.<b>
 	 */
-	public Bolt setNetId(UUID id) {
-		super.setNetId(id);
-		return this;
+	public Bolt() {
+		super(UUID.randomUUID());
+		shooterId = null;
 	}
 	
 	/**
@@ -46,13 +37,13 @@ public class Bolt extends NetActor implements Poolable {
 	}
 	
 	public float getSpeedCompX() {
-		return SPEED*MathUtils.cosDeg(getRotation());
+		return SPEED * MathUtils.cosDeg(getRotation());
 	}
 	
 	public float getSpeedCompY() {
-		return SPEED*MathUtils.sinDeg(getRotation());
+		return SPEED * MathUtils.sinDeg(getRotation());
 	}
-
+	
 	@Override
 	public void reset() {
 		setNetId(null);

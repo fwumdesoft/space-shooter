@@ -1,20 +1,14 @@
 package com.fwumdesoft.shoot.model;
 
 import java.util.UUID;
-
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.utils.Pool.Poolable;
 
 /**
  * An Actor that has a netId so it can be associated with an Object on the server.
  */
-public abstract class NetActor extends Actor implements Poolable {
+public abstract class NetActor extends Actor {
 	private UUID netId;
 	
-	/**
-	 * Instantiates a blank NetActor. Should only be called by when obtaining
-	 * a NetActor from a pool and should immediately have its netId set.
-	 */
 	public NetActor() {}
 	
 	/**

@@ -1,7 +1,6 @@
 package com.fwumdesoft.shoot.net.server;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -9,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.UUID;
-
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -40,7 +38,7 @@ public class Server extends ApplicationAdapter {
 		//setup log file
 		logFile = Gdx.files.local("log");
 		logFile.delete();
-
+		
 		try {
 			socket = new DatagramSocket(SERVER_ADDR);
 			socket.setReceiveBufferSize(PACKET_LENGTH);
@@ -70,7 +68,8 @@ public class Server extends ApplicationAdapter {
 					
 //					logFile.writeString("Received a packet from ID: " + senderId + " with message ID: " + msgId + " with dataLength of " + dataLength + "\n", true);
 					
-					switch(msgId) {
+					switch(msgId)
+					{
 					case MSG_CONNECT:
 						//make sure client doesn't already exist
 						if(clients.containsKey(senderId)) {
@@ -158,7 +157,7 @@ public class Server extends ApplicationAdapter {
 							logFile.writeString("Client with ID: " + senderId + " tried to update its position before connecting\n", true);
 							break;
 						}
-
+						
 						//update simulationStage
 						float x = data.getFloat();
 						float y = data.getFloat();
@@ -207,10 +206,9 @@ public class Server extends ApplicationAdapter {
 				}
 				
 				//simulate actors
-				float deltaTime = System.currentTimeMillis()/1000f - time;
-				time = System.currentTimeMillis()/1000f;
+				float deltaTime = System.currentTimeMillis() / 1000f - time;
+				time = System.currentTimeMillis() / 1000f;
 				simulationStage.act(deltaTime);
-				
 				
 				//send packets to update the actors for clients
 				for(Client client : clients.values()) {
@@ -284,7 +282,7 @@ public class Server extends ApplicationAdapter {
 //		simulationThread.start();
 		heartbeatThread.start();
 	}
-
+	
 	@Override
 	public void dispose() {
 		logFile.writeString("Disposing...\n", true);

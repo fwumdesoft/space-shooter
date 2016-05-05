@@ -1,10 +1,8 @@
 package com.fwumdesoft.shoot;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
-
 import java.nio.ByteBuffer;
 import java.util.UUID;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
@@ -27,10 +25,10 @@ public class GameScreen extends ScreenAdapter {
 	public void show() {
 		FillViewport viewport = new FillViewport(500, 500f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
-		Gdx.input.setInputProcessor(stage);	
+		Gdx.input.setInputProcessor(stage);
 		
 		startNetReceiveThread();
-
+		
 		localPlayer = new Player(ServerInterface.getClientId(), true);
 		localPlayer.addListener(new InputManager(localPlayer));
 		stage.setKeyboardFocus(localPlayer);
@@ -43,7 +41,8 @@ public class GameScreen extends ScreenAdapter {
 	private void startNetReceiveThread() {
 		netReceiveThread = new Thread(() -> {
 			while(!Thread.interrupted()) {
-				if(!ServerInterface.isConnected()) continue;
+				if(!ServerInterface.isConnected())
+					continue;
 				ByteBuffer buffer = ServerInterface.receiveData();
 				if(buffer == null) {
 					Gdx.app.debug("GameScreen", "Skipped a message from the server");
@@ -56,7 +55,8 @@ public class GameScreen extends ScreenAdapter {
 				final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
 				final ByteBuffer data = buffer;
 				
-				switch(msgId) {
+				switch(msgId)
+				{
 				case MSG_CONNECT:
 					Player newPlayer = new Player(senderId);
 					stage.addActor(newPlayer);
@@ -86,7 +86,8 @@ public class GameScreen extends ScreenAdapter {
 								player.setX(data.getFloat());
 								player.setY(data.getFloat());
 								player.setRotation(data.getFloat());
-								Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
+								Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: "
+										+ player.getRotation());
 							}
 						}
 					}
@@ -114,7 +115,7 @@ public class GameScreen extends ScreenAdapter {
 		}, "net_receive_thread");
 		netReceiveThread.start();
 	}
-
+	
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height);
@@ -135,12 +136,12 @@ public class GameScreen extends ScreenAdapter {
 		if(ServerInterface.isConnected())
 			ServerInterface.heartbeat();
 	}
-
+	
 	@Override
 	public void hide() {
 		dispose();
 	}
-
+	
 	@Override
 	public void dispose() {
 		stage.dispose();
