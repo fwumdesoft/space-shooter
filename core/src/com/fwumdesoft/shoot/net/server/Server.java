@@ -315,7 +315,7 @@ public class Server extends ApplicationAdapter {
 		
 		//start threads
 		ioThread.start();
-//		simulationThread.start();
+		simulationThread.start();
 		heartbeatThread.start();
 	}
 	
