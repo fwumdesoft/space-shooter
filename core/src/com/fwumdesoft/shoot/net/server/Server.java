@@ -1,18 +1,6 @@
 package com.fwumdesoft.shoot.net.server;
 
-import static com.fwumdesoft.shoot.net.NetConstants.HEADER_LENGTH;
-import static com.fwumdesoft.shoot.net.NetConstants.HEARTBEAT_TIMEOUT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_CONNECT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_CONNECT_HANDSHAKE;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_DISCONNECT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_HEARTBEAT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_REMOVE_BOLT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_SPAWN_BOLT;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_UPDATE;
-import static com.fwumdesoft.shoot.net.NetConstants.MSG_UPDATE_PLAYER;
-import static com.fwumdesoft.shoot.net.NetConstants.PACKET_LENGTH;
-import static com.fwumdesoft.shoot.net.NetConstants.SERVER_ADDR;
-
+import static com.fwumdesoft.shoot.net.NetConstants.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -22,7 +10,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.UUID;
-
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -64,7 +51,8 @@ public class Server extends ApplicationAdapter {
 		netActors = new HashSet<>();
 		
 		//handles incoming messages
-		ioThread = new Thread(() -> {
+		//THE ONLY THREAD THAT CAN ADD OR REMOVE CLIENTS
+		ioThread = new Thread(() -> { 
 			DatagramPacket packet = new DatagramPacket(new byte[PACKET_LENGTH], PACKET_LENGTH);
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			while(!Thread.interrupted()) {
@@ -88,7 +76,9 @@ public class Server extends ApplicationAdapter {
 						}
 						
 						Client newClient = new Client(senderId, packet.getSocketAddress());
-						clients.put(senderId, newClient);
+						synchronized(clients) {
+							clients.put(senderId, newClient);
+						}
 						synchronized(netActors) {
 							netActors.add(new Player(senderId));
 						}
@@ -118,6 +108,7 @@ public class Server extends ApplicationAdapter {
 									buffer.putFloat(b.getSpeed());
 								} else if(actor instanceof Player) {
 									Player p = (Player)actor;
+									if(p.getNetId().equals(senderId)) continue;
 									buffer.rewind();
 									buffer.putInt(0);
 									buffer.put(MSG_CONNECT);
@@ -198,15 +189,24 @@ public class Server extends ApplicationAdapter {
 							logFile.writeString("Client with ID: " + senderId + " tried to update its position before connecting\n", true);
 							break;
 						}
-
-						//TODO update local copy of Player
+						
+						float playerX = data.getFloat();
+						float playerY = data.getFloat();
+						float playerRot = data.getFloat();
+						synchronized(netActors) {
+							for(NetActor actor : netActors) {
+								if(actor instanceof Player) {
+									Player p = (Player)actor;
+									p.setPosition(playerX, playerY);
+									p.setRotation(playerRot);
+								}
+							}
+						}
 						
 						//tell all clients of the sender's new position
-						synchronized(clients) {
-							for(Client c : clients.values()) {
-								if(!c.clientId.equals(senderId)) {
-									c.send(socket, packet);
-								}
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
+								c.send(socket, packet);
 							}
 						}
 						break;
@@ -226,16 +226,15 @@ public class Server extends ApplicationAdapter {
 						Bolt newBolt = boltPool.obtain().setShooterId(senderId).setSpeed(boltSpeed).setNetId(boltNetId);
 						newBolt.setPosition(boltX, boltY);
 						newBolt.setRotation(boltRot);
+						logFile.writeString("X:" + boltX + " Y:" + boltY + " rot:" + boltRot + " speed:" + boltSpeed + "\n", true);
 						synchronized(netActors) {
 							netActors.add(newBolt);
 						}
 						
 						//tell all clients that a bolt was spawned
-						synchronized(clients) {
-							for(Client c : clients.values()) {
-								if(!c.clientId.equals(senderId)) {
-									c.send(socket, packet);
-								}
+						for(Client c : clients.values()) {
+							if(!c.clientId.equals(senderId)) {
+								c.send(socket, packet);
 							}
 						}
 					}
@@ -262,12 +261,9 @@ public class Server extends ApplicationAdapter {
 						NetActor actor = iter.next();
 						if(actor instanceof Bolt) {
 							Bolt bolt = (Bolt)actor;
-							bolt.moveBy(bolt.getSpeedCompX() * deltaTime, bolt.getSpeedCompY() * deltaTime);
+							bolt.moveBy(bolt.getSpeedCompX(), bolt.getSpeedCompY());
 							//remove the bolt if its out of bounds
 							if(bolt.getX() < 0 || bolt.getX() > 2000 || bolt.getY() < 0 || bolt.getY() > 1000) {
-								Pools.free(bolt);
-								iter.remove();
-								
 								//Send a MSG_REMOVE_BOLT packet to all clients
 								buffer.rewind();
 								int dataLength = 32; //4 longs
@@ -280,6 +276,10 @@ public class Server extends ApplicationAdapter {
 								buffer.putLong(0);
 								buffer.putLong(0);
 								packet.setLength(HEADER_LENGTH + dataLength);
+								
+								Pools.free(bolt);
+								iter.remove();
+								
 								synchronized(clients) {
 									for(Client c : clients.values()) {
 										c.send(socket, packet);
@@ -297,6 +297,7 @@ public class Server extends ApplicationAdapter {
 							for(NetActor actor : netActors) {
 								if(actor instanceof Bolt) {
 									Bolt bolt = (Bolt)actor;
+									logFile.writeString("X:" + bolt.getX() + " Y:" + bolt.getY() + " rot:" + bolt.getRotation() + "\n", true);
 									buffer.rewind();
 									int dataLength = 28; //2 longs & 3 floats
 									buffer.putInt(dataLength);

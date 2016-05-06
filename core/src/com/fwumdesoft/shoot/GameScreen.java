@@ -98,17 +98,22 @@ public class GameScreen extends ScreenAdapter {
 					float x = data.getFloat();
 					float y = data.getFloat();
 					float rot = data.getFloat();
+					Gdx.app.log("GameScreen", "X:" + x + " Y:" + y + " rot:" + rot);
 					for(Actor a : stage.getActors()) {
 						if(a instanceof NetActor) {
 							NetActor n = (NetActor)a;
 							if(n.getNetId().equals(netId)) {
 								n.setPosition(x, y);
 								n.setRotation(rot);
+								break;
 							}
 						}
 					}
 					
 					Gdx.app.debug("GameScreen", "Updated NetActor ID: " + netId);
+					break;
+				case MSG_REMOVE_BOLT:
+					//TODO implement bolt removal
 					break;
 				}
 			}
