@@ -16,7 +16,7 @@ public class DesktopLauncher {
 		if(arg.length > 0 && arg[0].equals("server")) {
 			try {
 				HeadlessApplicationConfiguration config = new HeadlessApplicationConfiguration();
-				config.renderInterval = 1f; //this will keep the main loop alive
+				config.renderInterval = 0f; //this will keep the main loop alive
 				new HeadlessApplication(new Server(), config);
 			} catch(Throwable e) {
 				if(Gdx.files != null) {
