@@ -1,9 +1,7 @@
 package com.fwumdesoft.shoot;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
-
 import java.nio.ByteBuffer;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.ScreenAdapter;
@@ -63,11 +61,7 @@ public class MainScreen extends ScreenAdapter {
 	}
 	
 	private void displayNetError(String desc) {
-		new Dialog("Network Error", Main.uiskin)
-		.text(desc)
-		.button("Ok")
-		.key(Keys.ESCAPE, null).key(Keys.ENTER, null)
-		.show(stage);
+		new Dialog("Network Error", Main.uiskin).text(desc).button("Ok").key(Keys.ESCAPE, null).key(Keys.ENTER, null).show(stage);
 	}
 	
 	@Override
@@ -82,12 +76,12 @@ public class MainScreen extends ScreenAdapter {
 		stage.act();
 		stage.draw();
 	}
-
+	
 	@Override
 	public void hide() {
 		dispose();
 	}
-
+	
 	@Override
 	public void dispose() {
 		stage.dispose();

@@ -1,10 +1,8 @@
 package com.fwumdesoft.shoot;
 
 import static com.fwumdesoft.shoot.net.NetConstants.*;
-
 import java.nio.ByteBuffer;
 import java.util.UUID;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
@@ -27,10 +25,10 @@ public class GameScreen extends ScreenAdapter {
 	public void show() {
 		FillViewport viewport = new FillViewport(500, 500f * ((float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth()));
 		stage = new Stage(viewport);
-		Gdx.input.setInputProcessor(stage);	
+		Gdx.input.setInputProcessor(stage);
 		
 		startNetReceiveThread();
-
+		
 		localPlayer = new Player(ServerInterface.getClientId(), true);
 		localPlayer.addListener(new InputManager(localPlayer));
 		stage.setKeyboardFocus(localPlayer);
@@ -43,6 +41,8 @@ public class GameScreen extends ScreenAdapter {
 	private void startNetReceiveThread() {
 		netReceiveThread = new Thread(() -> {
 			while(!Thread.interrupted()) {
+				if(!ServerInterface.isConnected())
+					continue;
 				ByteBuffer buffer = ServerInterface.receiveData();
 				if(buffer == null) {
 					Gdx.app.debug("GameScreen", "Skipped a message from the server");
@@ -55,7 +55,8 @@ public class GameScreen extends ScreenAdapter {
 				final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
 				final ByteBuffer data = buffer;
 				
-				switch(msgId) {
+				switch(msgId)
+				{
 				case MSG_CONNECT:
 					Player newPlayer = new Player(senderId);
 					stage.addActor(newPlayer);
@@ -66,7 +67,7 @@ public class GameScreen extends ScreenAdapter {
 					for(Actor a : stage.getActors()) {
 						if(a instanceof NetActor) {
 							NetActor netActor = (NetActor)a;
-							if(senderId.equals(netActor.netId)) {
+							if(senderId.equals(netActor.getNetId())) {
 								removedActor = netActor;
 								break;
 							}
@@ -78,30 +79,48 @@ public class GameScreen extends ScreenAdapter {
 					Gdx.app.log("GameScreen", "Removed a player with ID: " + senderId + " from the stage");
 					break;
 				case MSG_UPDATE_PLAYER:
-					Player player = null;
 					for(Actor a : stage.getActors()) {
 						if(a instanceof Player) {
-							Player p = (Player)a;
-							if(senderId.equals(p.netId)) {
-								player = p;
+							Player player = (Player)a;
+							if(senderId.equals(player.getNetId())) {
+								player.setX(data.getFloat());
+								player.setY(data.getFloat());
+								player.setRotation(data.getFloat());
+								Gdx.app.debug("GameScreen", "player ID: " + player.getNetId() + " " + player.getX() + " " + player.getY() + " rot: "
+										+ player.getRotation());
+							}
+						}
+					}
+					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
+					break;
+				case MSG_UPDATE:
+					UUID netId = new UUID(data.getLong(), data.getLong());
+					float x = data.getFloat();
+					float y = data.getFloat();
+					float rot = data.getFloat();
+					Gdx.app.log("GameScreen", "X:" + x + " Y:" + y + " rot:" + rot);
+					for(Actor a : stage.getActors()) {
+						if(a instanceof NetActor) {
+							NetActor n = (NetActor)a;
+							if(n.getNetId().equals(netId)) {
+								n.setPosition(x, y);
+								n.setRotation(rot);
+								break;
 							}
 						}
 					}
 					
-					if(player != null) {
-						player.setX(data.getFloat());
-						player.setY(data.getFloat());
-						player.setRotation(data.getFloat());
-						Gdx.app.debug("GameScreen", "player ID: " + player.netId + " " + player.getX() + " " + player.getY() + " rot: " + player.getRotation());
-					}
-					Gdx.app.debug("GameScreen", "Updated Player ID: " + senderId);
+					Gdx.app.debug("GameScreen", "Updated NetActor ID: " + netId);
+					break;
+				case MSG_REMOVE_BOLT:
+					//TODO implement bolt removal
 					break;
 				}
 			}
 		}, "net_receive_thread");
 		netReceiveThread.start();
 	}
-
+	
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height);
@@ -122,12 +141,12 @@ public class GameScreen extends ScreenAdapter {
 		if(ServerInterface.isConnected())
 			ServerInterface.heartbeat();
 	}
-
+	
 	@Override
 	public void hide() {
 		dispose();
 	}
-
+	
 	@Override
 	public void dispose() {
 		stage.dispose();

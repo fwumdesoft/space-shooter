@@ -18,8 +18,7 @@ public class NetConstants {
 	/** Time in milliseconds until a user is booted from the game server. */
 	public static final long HEARTBEAT_TIMEOUT = 15000L;
 	
-	
-	//Packet constants
+	// Packet constants
 	/** Max length in bytes that a packet can send to and from the server. */
 	public static final int PACKET_LENGTH = 256;
 	/** Start index of the dataLength chunk. */
@@ -31,8 +30,7 @@ public class NetConstants {
 	/** Length of the header of packets sent to and from the server. */
 	public static final int HEADER_LENGTH = 21;
 	
-	
-	//Message Ids
+	// Message Ids
 	/** Used for new player connections. */
 	public static final byte MSG_CONNECT = (byte)0x00;
 	/** Used to remove players. */
@@ -48,13 +46,30 @@ public class NetConstants {
 	public static final byte MSG_UPDATE_PLAYER = (byte)0x03;
 	/** Used by the server to acknowledge a new connection. */
 	public static final byte MSG_CONNECT_HANDSHAKE = (byte)0x04;
-	/** Used by the client to tell the server that a bolt has been fired. */
+	/** Used by the client to tell the server that a bolt has been fired.
+	 * <li>8 bytes: The bolt's most significant bytes of its netId.
+	 * <li>8 bytes: The bolt's least significant bytes of its netId.
+	 * <li>4 bytes: The bolt's x position.
+	 * <li>4 bytes: The bolt's y position.
+	 * <li>4 bytes: The bolt's rotation.
+	 * <li>4 bytes: the bolt's speed.
+	 */
 	public static final byte MSG_SPAWN_BOLT = (byte)0x05;
 	/**
 	 * Generic update packet that will update a specific actor for the client based on its netId.
+	 * <li>8 bytes: The actor's most significant bytes of its netId.
+	 * <li>8 bytes: The actor's least significant bytes of its netId.
 	 * <li>4 bytes: The actor's x position.
 	 * <li>4 bytes: The actor's y position.
-	 * <li>4 bytes: The actor's rotation.
+	 * <li>4 bytes: The actor's rotation in deg.
 	 */
 	public static final byte MSG_UPDATE = (byte)0x06;
+	/**
+	 * Used to remove a Bolt from the game regardless of if it was out of bounds or if it hit a player.
+	 * <li>8 bytes: The bolt's most significant bytes of its netId.
+	 * <li>8 bytes: The bolt's least significant bytes of its netId.
+	 * <li>8 bytes: The most significant bytes of the netId of the player that was hit. 0 if no player was hit.
+	 * <li>8 bytes: The least significant bytes of the netId of the player that was hit. 0 if no player was hit.
+	 */
+	public static final byte MSG_REMOVE_BOLT = (byte)0x07;
 }
