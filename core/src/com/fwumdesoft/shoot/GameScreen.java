@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.fwumdesoft.shoot.model.NetActor;
 import com.fwumdesoft.shoot.model.Player;
@@ -33,6 +34,7 @@ public class GameScreen extends ScreenAdapter {
 		localPlayer.addListener(new InputManager(localPlayer));
 		stage.setKeyboardFocus(localPlayer);
 		stage.addActor(localPlayer);
+		localPlayer.setPosition(viewport.getWorldWidth()/2, viewport.getWorldHeight()/2, Align.center);
 	}
 	
 	/**
@@ -54,6 +56,8 @@ public class GameScreen extends ScreenAdapter {
 				final byte msgId = buffer.get();
 				final UUID senderId = new UUID(buffer.getLong(), buffer.getLong());
 				final ByteBuffer data = buffer;
+				
+				Gdx.app.log("GameScreen", msgId + "");
 				
 				switch(msgId)
 				{
@@ -98,7 +102,6 @@ public class GameScreen extends ScreenAdapter {
 					float x = data.getFloat();
 					float y = data.getFloat();
 					float rot = data.getFloat();
-					Gdx.app.log("GameScreen", "X:" + x + " Y:" + y + " rot:" + rot);
 					for(Actor a : stage.getActors()) {
 						if(a instanceof NetActor) {
 							NetActor n = (NetActor)a;
@@ -113,7 +116,30 @@ public class GameScreen extends ScreenAdapter {
 					Gdx.app.debug("GameScreen", "Updated NetActor ID: " + netId);
 					break;
 				case MSG_REMOVE_BOLT:
-					//TODO implement bolt removal
+					UUID boltNetId = new UUID(data.getLong(), data.getLong());
+					UUID targetId = new UUID(data.getLong(), data.getLong());
+					
+					//remove bolt from stage
+					Actor removed = null;
+					synchronized(stage) {
+						for(Actor a : stage.getActors()) {
+							if(a instanceof NetActor) {
+								NetActor n = (NetActor)a;
+								if(n.getNetId().equals(boltNetId)) {
+									removed = n;
+									break;
+								}
+							}
+						}
+					}
+					if(removed != null)
+						removed.remove();
+					
+					if(!targetId.equals(NULL_ID)) {
+						//TODO do something if the bolt hit a player
+					}
+					
+					Gdx.app.log("GameScreen", "Received MSG_REMOVE_BOLT");
 					break;
 				}
 			}
