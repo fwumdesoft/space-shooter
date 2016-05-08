@@ -1,6 +1,7 @@
 package com.fwumdesoft.shoot.net;
 
 import java.net.InetSocketAddress;
+import java.util.UUID;
 
 /**
  * <b>Proper Packet Structure:</b>
@@ -12,6 +13,8 @@ import java.net.InetSocketAddress;
  */
 public class NetConstants {
 	private NetConstants() {}
+	
+	public static final UUID NULL_ID = new UUID(0, 0);
 	
 	/** Remote game server address. */
 	public static final InetSocketAddress SERVER_ADDR = new InetSocketAddress("45.33.68.145", 5555);
