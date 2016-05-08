@@ -18,15 +18,15 @@ import com.fwumdesoft.shoot.net.ServerInterface;
  * authority over the position of the player.
  */
 public class Player extends NetActor {
-	private float speed = 5;
-	public static final float ROTATE_SPEED = 3f;
+	private float speed = 500;
+	public static final float ROTATE_SPEED = 300f;
 	
 	private TextureRegion texture;
 	private boolean isLocalPlayer;
 	private Polygon hitbox;
 	
 	public Player(final UUID id) {
-		setNetId(id);
+		super(id);
 		setWidth(40);
 		setHeight(40);
 		setOrigin(Align.center);
