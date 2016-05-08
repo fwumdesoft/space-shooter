@@ -297,7 +297,7 @@ public class Server extends ApplicationAdapter {
 		synchronized(stage) {
 			Array<Actor> removedActors = null;
 			for(Actor actor : stage.getActors()) {
-				if(actor instanceof Bolt) {
+				if(actor instanceof Bolt) { //TODO implement player-bolt collision
 					Bolt bolt = (Bolt)actor;
 					bolt.addAction(Actions.moveBy(bolt.getSpeedCompX() * Gdx.graphics.getDeltaTime(), bolt.getSpeedCompY() * Gdx.graphics.getDeltaTime()));
 					//remove the bolt if its out of bounds
