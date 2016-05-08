@@ -97,7 +97,7 @@ public class ServerInterface {
 			send(MSG_HEARTBEAT);
 		}
 		
-		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
+//		Gdx.app.debug("ServerInterface", "Sent a MSG_HEARTBEAT packet");
 	}
 	
 	/**
