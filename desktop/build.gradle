@@ -20,7 +20,7 @@ task dist(type: Jar) {
     from {configurations.compile.collect {zipTree(it)}}
     from files(project.assetsDir);
  
- 	baseName = "ShooterGame"
+ 	baseName = "space-shooter"
  
     manifest {
         attributes 'Main-Class': project.mainClassName
